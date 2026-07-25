@@ -9,7 +9,7 @@ It **is** a Yarn workspace member (declared in the root `package.json`
 it automatically:
 
 ```jsonc
-"@softwhere-uz/react-native-emoji-keyboard": "0.1.1"
+"@softwhere-uz/react-native-emoji-keyboard": "0.1.2"
 ```
 
 Being a workspace matters: workspace version-matching resolves this

@@ -12,7 +12,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~56.0.18",
     "@shopify/flash-list": "^2.3.2",
-    "@softwhere-uz/react-native-emoji-keyboard": "0.1.1",
+    "@softwhere-uz/react-native-emoji-keyboard": "0.1.2",
     "expo": "~56.0.17",
     "expo-asset": "~56.0.21",
     "expo-constants": "~56.0.22",

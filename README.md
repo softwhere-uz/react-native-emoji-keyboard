@@ -27,7 +27,9 @@ Emoji&nbsp;17.0 · [FlashList&nbsp;v2](https://shopify.github.io/flash-list/) ·
 
 </div>
 
-The published package is **[`@softwhere-uz/react-native-emoji-keyboard`](packages/react-native-emoji-keyboard)** (`0.1.0`) — the UI library, with the compact **Emoji 17.0** dataset bundled in and re-exported (`emojis` / `groups` / `meta`). Full API docs (props, theming, storage, headless hooks) live in the [library README](packages/react-native-emoji-keyboard/README.md).
+The published package is **[`@softwhere-uz/react-native-emoji-keyboard`](packages/react-native-emoji-keyboard)** — the UI library, with the compact **Emoji 17.0** dataset bundled in and re-exported (`emojis` / `groups` / `meta`). Full API docs (props, theming, storage, headless hooks) live in the [library README](packages/react-native-emoji-keyboard/README.md).
+
+> **Coming from [`rn-emoji-keyboard`](https://www.npmjs.com/package/rn-emoji-keyboard)?** It has been unmaintained since May 2024 — stuck on Emoji 11.0 (2018) and broken on the web. This package is a **drop-in successor** with the same `EmojiType` / `Theme` / props, current **Emoji 17.0**, and real web parity. Migrating is about four import swaps — see the **[migration guide](packages/react-native-emoji-keyboard/MIGRATION.md)**.
 
 ## Why this exists
 

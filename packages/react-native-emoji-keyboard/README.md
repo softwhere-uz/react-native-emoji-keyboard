@@ -34,6 +34,8 @@ Emoji&nbsp;17.0 · [FlashList&nbsp;v2](https://shopify.github.io/flash-list/) ·
 
 ---
 
+> **Coming from [`rn-emoji-keyboard`](https://www.npmjs.com/package/rn-emoji-keyboard)?** It has been unmaintained since May 2024 — stuck on Emoji 11.0 (2018) and broken on the web. This package is a **drop-in successor**: the same `EmojiType` / `Theme` / prop surface, current **Emoji 17.0**, and real web parity. Migrating is about four import swaps — see the **[migration guide](./MIGRATION.md)**.
+
 ## Why this exists
 
 Most React Native emoji pickers are unmaintained, ship years-old emoji, and break on the web. This library was built to close a real gap: **the same component, rendering correctly and identically on iOS, Android, and the web**, with current Unicode data and a proper virtualized grid.
