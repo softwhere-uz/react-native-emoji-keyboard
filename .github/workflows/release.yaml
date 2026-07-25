@@ -1,0 +1,114 @@
+# Publishes @softwhere-uz/react-native-emoji-keyboard to npm using
+# **Trusted Publishing (OIDC)** — no NPM_TOKEN secret required.
+#
+# One-time setup on npmjs.com (Package → Settings → Trusted Publisher):
+#   • Publisher:        GitHub Actions
+#   • Organization/user: softwhere-uz
+#   • Repository:        react-native-emoji-keyboard
+#   • Workflow filename: release.yaml
+#   • Environment:       (leave empty, unless you add `environment:` below)
+#
+# Release flow:
+#   1. Bump the version in packages/react-native-emoji-keyboard/package.json
+#      (e.g. 0.1.0-alpha.2, or 0.1.0 for a stable cut) and commit it.
+#   2. Create a GitHub Release whose tag is `v<that version>` (e.g. v0.1.0-alpha.2).
+#      Publishing the release triggers this workflow.
+#   The dist-tag is derived from the version: `0.1.0-alpha.2` → `alpha`,
+#   `0.1.0-beta.1` → `beta`, `0.1.0` → `latest`.
+
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Pack and validate without publishing (npm publish --dry-run)'
+        type: boolean
+        default: false
+
+# Least privilege. `id-token: write` is REQUIRED for npm OIDC trusted publishing
+# (and for provenance, which npm attaches automatically on a trusted publish).
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, verify & publish to npm
+    runs-on: ubuntu-latest
+    # Optionally require manual approval by uncommenting and creating the env,
+    # then set the same name in the npm Trusted Publisher config:
+    # environment: npm-publish
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+          cache: yarn
+
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; ensure a compatible npm
+      # regardless of the version bundled with Node.
+      - name: Upgrade npm (OIDC trusted publishing support)
+        run: npm install --global npm@latest
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Data reproducibility guard: regenerating the bundled Emoji data must not
+      # change what is committed (a stale bundle should never ship).
+      - name: Verify bundled emoji data is up to date
+        run: |
+          yarn codegen
+          git diff --exit-code -- packages/react-native-emoji-keyboard/src/data/generated \
+            || (echo "::error::Emoji data is stale. Run 'yarn codegen' and commit the result." && exit 1)
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      # §4 gate: the web-reveal logic must never regress into the empty-grid bug.
+      - name: Test
+        run: yarn test
+
+      - name: Build (CJS + ESM + types)
+        run: yarn build
+
+      # Only publish exactly what the release tag claims.
+      - name: Guard — release tag matches package version
+        if: github.event_name == 'release'
+        run: |
+          PKG_VERSION="v$(node -p "require('./packages/react-native-emoji-keyboard/package.json').version")"
+          TAG="${{ github.event.release.tag_name }}"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::Release tag '$TAG' does not match package version '$PKG_VERSION'. Bump package.json and re-tag."
+            exit 1
+          fi
+
+      - name: Publish to npm (Trusted Publishing / OIDC)
+        working-directory: packages/react-native-emoji-keyboard
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [[ "$VERSION" == *-* ]]; then
+            PRERELEASE="${VERSION#*-}"      # 0.1.0-alpha.2 -> alpha.2
+            DIST_TAG="${PRERELEASE%%.*}"    # alpha.2       -> alpha
+          else
+            DIST_TAG="latest"
+          fi
+          echo "Publishing $VERSION with dist-tag '$DIST_TAG'"
+          if [ "${{ github.event.inputs.dry-run }}" = "true" ]; then
+            npm publish --provenance --access public --tag "$DIST_TAG" --dry-run
+          else
+            npm publish --provenance --access public --tag "$DIST_TAG"
+          fi

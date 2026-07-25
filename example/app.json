@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Emoji Keyboard Example",
+    "slug": "emoji-keyboard-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "emojikbexample",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "uz.softwhere.emojikbexample"
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router"]
+  }
+}

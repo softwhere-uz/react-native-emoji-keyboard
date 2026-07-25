@@ -1,0 +1,40 @@
+# deps
+node_modules/
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+
+# build output
+lib/
+dist/
+*.tsbuildinfo
+
+# example / expo
+example/.expo/
+example/dist/
+example/web-build/
+.expo/
+
+# native
+example/ios/
+example/android/
+
+# test / coverage
+coverage/
+
+# logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.pem
+.env*.local
+
+# misc
+.turbo/

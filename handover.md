@@ -14,10 +14,10 @@
 |---|---|
 | **Decision** | Build fresh (not fork, not adopt an existing lib) |
 | **Package** | `@softwhere-uz/react-native-emoji-keyboard` (scope = GitHub org `softwhere-uz`) |
-| **Data package** | `@softwhere-uz/emoji-data` (platform-agnostic Emoji 17.0 JSON) |
+| **Data package** | ~~`@softwhere-uz/emoji-data` (platform-agnostic Emoji 17.0 JSON)~~ — **merged INTO the library (single package)** as of 2026-07-26; the Emoji 17.0 data now ships inside `@softwhere-uz/react-native-emoji-keyboard` (`src/data/`, re-exported as `emojis`/`groups`/`meta`). |
 | **Repo** | `github.com/softwhere-uz/react-native-emoji-keyboard` |
 | **Primary consumer** | TES-Chat (Expo SDK 56 / RN 0.85, New Arch / Fabric) |
-| **Phase** | Pre-scaffold. Next step = repo scaffold (see §9). |
+| **Phase** | **v0.1 scaffold built, verified & run on-device** (2026-07-25): monorepo + real Emoji-17.0 data + `EmojiKeyboard` on FlashList v2 + web-parity core. `yarn typecheck / test / lint / build` all green; 28 unit tests incl. the §4 web-reveal gate. **Run & verified on web (react-native-web) and native iOS (iPhone 16 Pro simulator, Fabric/New Arch): grid renders, category switching never blanks the grid (§4 fix confirmed), search filters, zero runtime errors.** Next = `0.1.0-alpha` publish → migrate TES-Chat's two call sites (§9 step 7); Android run. |
 
 > npm scope note: using `@softwhere-uz` to match the GitHub org this repo lives under. If the
 > published scope should instead be `@softwhere`, change it consistently everywhere before first publish.
@@ -194,6 +194,9 @@ Goal: swap into TES-Chat's two call sites with near-identical props. Shippable, 
   single-locale-default bundle into the separately-versioned `@softwhere-uz/emoji-data`. A Unicode bump
   becomes a **data release, not a lib release**. Do NOT build on `@emoji-mart/data` (frozen at Emoji 14)
   or `emoji-datasource` (28 MB spritesheets).
+  **Update (2026-07-26):** this decoupling was later reversed per the maintainer's preference — the data
+  now ships bundled inside the library as a single package (`src/data/`, codegen'd via `yarn codegen`), so
+  a Unicode bump is a **library release**.
 - **List virtualization**: **Shopify FlashList v2** as the sole grid engine — New-Arch-only, **JS-only
   (no native module, so it runs on web too)**, synchronous layout, `getItemType` for header/emoji-row
   recycling, `stickyHeaderIndices`, `scrollToIndex` + `onViewableItemsChanged` for two-way category sync.

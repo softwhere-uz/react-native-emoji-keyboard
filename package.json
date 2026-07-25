@@ -1,0 +1,39 @@
+{
+  "name": "react-native-emoji-keyboard-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo for @softwhere-uz/react-native-emoji-keyboard (library + example app).",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "example"
+  ],
+  "scripts": {
+    "codegen": "yarn workspace @softwhere-uz/react-native-emoji-keyboard codegen",
+    "build": "yarn workspace @softwhere-uz/react-native-emoji-keyboard build",
+    "typecheck": "yarn workspace @softwhere-uz/react-native-emoji-keyboard typecheck",
+    "test": "yarn workspace @softwhere-uz/react-native-emoji-keyboard test",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "yarn workspaces run clean"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/react": "^19.0.0",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.12.0"
+  },
+  "resolutions": {
+    "@testing-library/jest-dom": "6.9.1"
+  },
+  "packageManager": "yarn@1.22.19",
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+lib/
+dist/
+coverage/
+**/generated/**
+example/.expo/
+example/ios/
+example/android/
+yarn.lock

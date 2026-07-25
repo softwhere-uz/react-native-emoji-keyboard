@@ -1,0 +1,76 @@
+name: CI
+
+# Runs on every pull request (advisory checks) and on pushes to main.
+# Whether these checks are *required* to merge is a branch-protection setting
+# you control in the repo settings — the workflow itself always runs.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Code quality (lint · typecheck · test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      # Data reproducibility guard: regenerating the bundled Emoji data must not
+      # change what is committed.
+      - name: Verify bundled emoji data is up to date
+        run: |
+          yarn codegen
+          git diff --exit-code -- packages/react-native-emoji-keyboard/src/data/generated \
+            || (echo "::error::Emoji data is stale. Run 'yarn codegen' and commit the result." && exit 1)
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      # §4 gate: the web-reveal logic must never regress into the empty-grid bug.
+      - name: Test (web-reveal smoke gate)
+        run: yarn test
+
+  build:
+    name: Build (CJS · ESM · types)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      # Sanity: the published tarball must contain the compiled entry + bundled data.
+      - name: Verify build output
+        run: |
+          test -f packages/react-native-emoji-keyboard/lib/commonjs/index.js
+          test -f packages/react-native-emoji-keyboard/lib/module/index.js
+          test -f packages/react-native-emoji-keyboard/lib/typescript/commonjs/index.d.ts
+          test -f packages/react-native-emoji-keyboard/lib/commonjs/data/generated/en.js
+          echo "✅ build artifacts present"
