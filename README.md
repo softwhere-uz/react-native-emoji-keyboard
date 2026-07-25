@@ -1,15 +1,33 @@
+<div align="center">
+
 # react-native-emoji-keyboard
 
-A from-scratch, **universal** (iOS · Android · **Web**), **New-Architecture-first** emoji keyboard and
-reaction picker for React Native and Expo — shipping **Emoji 17.0** (Sept 2025) data and first-class
-web parity.
+**A from-scratch, universal (iOS · Android · Web), New-Architecture-first emoji keyboard & reaction picker for React Native and Expo.**
 
-> Status: **`0.1.0-alpha`** — early, but the public prop surface and payload types are frozen against
-> the incumbent for drop-in migration. See the [migration guide](packages/react-native-emoji-keyboard/MIGRATION.md).
+Emoji&nbsp;17.0 · [FlashList&nbsp;v2](https://shopify.github.io/flash-list/) · deep theming · swappable storage · first-class web parity — a drop-in replacement for the unmaintained `rn-emoji-keyboard`.
 
-Published package:
+[![npm version](https://img.shields.io/npm/v/@softwhere-uz/react-native-emoji-keyboard?color=cb3837&logo=npm)](https://www.npmjs.com/package/@softwhere-uz/react-native-emoji-keyboard)
+[![npm downloads](https://img.shields.io/npm/dm/@softwhere-uz/react-native-emoji-keyboard?color=cb3837&logo=npm)](https://www.npmjs.com/package/@softwhere-uz/react-native-emoji-keyboard)
+[![CI](https://github.com/softwhere-uz/react-native-emoji-keyboard/actions/workflows/ci.yml/badge.svg)](https://github.com/softwhere-uz/react-native-emoji-keyboard/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@softwhere-uz/react-native-emoji-keyboard?color=blue)](./LICENSE)
+[![platforms](https://img.shields.io/badge/platforms-iOS%20·%20Android%20·%20Web-informational)](packages/react-native-emoji-keyboard#compatibility)
+[![New Architecture](https://img.shields.io/badge/New%20Architecture-required-8a2be2)](packages/react-native-emoji-keyboard#compatibility)
 
-- **[`@softwhere-uz/react-native-emoji-keyboard`](packages/react-native-emoji-keyboard)** — the UI library, with the compact **Emoji 17.0** dataset bundled in and re-exported (`emojis` / `groups` / `meta`).
+<br />
+
+<table>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/softwhere-uz/react-native-emoji-keyboard/main/docs/media/ios-composer.png" width="230" alt="Emoji keyboard on iOS" /></td>
+    <td><img src="https://raw.githubusercontent.com/softwhere-uz/react-native-emoji-keyboard/main/docs/media/web-composer.png" width="230" alt="Emoji keyboard on the web" /></td>
+    <td><img src="https://raw.githubusercontent.com/softwhere-uz/react-native-emoji-keyboard/main/docs/media/web-search.png" width="230" alt="Emoji search" /></td>
+  </tr>
+</table>
+
+<sub>Real screenshots from the example app — verified running on web (react-native-web) and the iOS simulator (Fabric / New Architecture).</sub>
+
+</div>
+
+The published package is **[`@softwhere-uz/react-native-emoji-keyboard`](packages/react-native-emoji-keyboard)** (`0.1.0`) — the UI library, with the compact **Emoji 17.0** dataset bundled in and re-exported (`emojis` / `groups` / `meta`). Full API docs (props, theming, storage, headless hooks) live in the [library README](packages/react-native-emoji-keyboard/README.md).
 
 ## Why this exists
 
@@ -44,10 +62,10 @@ by construction here (there is no `InteractionManager` anywhere in the source).
 .
 ├── packages/
 │   └── react-native-emoji-keyboard/   # @softwhere-uz/react-native-emoji-keyboard (UI library + bundled Emoji 17.0 data + codegen)
-└── example/                           # Expo (expo-router) app to dogfood on iOS/Android/web (planned)
+└── example/                           # Expo SDK 56 (expo-router) app dogfooding on iOS/Android/web
 ```
 
-Yarn workspaces; `packages/*`.
+Yarn workspaces (`packages/*` + `example`).
 
 ## Quick start
 
@@ -95,10 +113,11 @@ yarn format     # prettier --write
 
 ## Status
 
-**`0.1.0-alpha`.** Scope of v0.1 is a tight drop-in replacement for the incumbent's inline call sites
-(composer + reaction picker) with verified iOS/Android/web parity. Headless core, a dedicated compact
-reaction strip, frecency, multilingual search, and an Expo config plugin for bundled glyphs are on the
-roadmap.
+**`0.1.0`** — first stable release, published to npm as `latest`. v0.1 is a tight drop-in replacement
+for the incumbent's inline call sites (composer + reaction picker), **verified running on web
+(react-native-web) and iOS (iPhone 16 Pro simulator, Fabric)**. A dedicated compact reaction strip,
+composable headless parts, per-emoji skin-tone memory, frecency ranking, multilingual CLDR search, and
+an Expo config plugin for bundled glyphs are on the roadmap.
 
 ## Links
 
