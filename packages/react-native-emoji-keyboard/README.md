@@ -1,54 +1,123 @@
+<div align="center">
+
 # @softwhere-uz/react-native-emoji-keyboard
 
-Universal (iOS · Android · **Web**), New-Architecture-first emoji keyboard and reaction picker for
-React Native and Expo. **Emoji 17.0**, `@shopify/flash-list` v2, deep theming, swappable storage, and
-first-class web parity.
+**A universal (iOS · Android · Web), New-Architecture-first emoji keyboard & reaction picker for React Native and Expo.**
 
-> Status: **`0.1.0-alpha`**. Public prop surface + `EmojiType` payload are frozen for drop-in migration
-> from `rn-emoji-keyboard` — see [MIGRATION.md](./MIGRATION.md).
+Emoji&nbsp;17.0 · [FlashList&nbsp;v2](https://shopify.github.io/flash-list/) · deep theming · swappable storage · first-class web parity — a drop-in replacement for the unmaintained `rn-emoji-keyboard`.
+
+[![npm version](https://img.shields.io/npm/v/@softwhere-uz/react-native-emoji-keyboard?color=cb3837&logo=npm)](https://www.npmjs.com/package/@softwhere-uz/react-native-emoji-keyboard)
+[![npm downloads](https://img.shields.io/npm/dm/@softwhere-uz/react-native-emoji-keyboard?color=cb3837&logo=npm)](https://www.npmjs.com/package/@softwhere-uz/react-native-emoji-keyboard)
+[![CI](https://github.com/softwhere-uz/react-native-emoji-keyboard/actions/workflows/ci.yml/badge.svg)](https://github.com/softwhere-uz/react-native-emoji-keyboard/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@softwhere-uz/react-native-emoji-keyboard?color=blue)](./LICENSE)
+[![platforms](https://img.shields.io/badge/platforms-iOS%20·%20Android%20·%20Web-informational)](#compatibility)
+[![New Architecture](https://img.shields.io/badge/New%20Architecture-required-8a2be2)](#compatibility)
+
+<br />
+
+<table>
+  <tr>
+    <td align="center"><b>iOS (native · Fabric)</b></td>
+    <td align="center"><b>Web (react-native-web)</b></td>
+    <td align="center"><b>Search</b></td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/softwhere-uz/react-native-emoji-keyboard/main/docs/media/ios-composer.png" width="240" alt="Emoji keyboard on iOS" /></td>
+    <td><img src="https://raw.githubusercontent.com/softwhere-uz/react-native-emoji-keyboard/main/docs/media/web-composer.png" width="240" alt="Emoji keyboard on the web" /></td>
+    <td><img src="https://raw.githubusercontent.com/softwhere-uz/react-native-emoji-keyboard/main/docs/media/web-search.png" width="240" alt="Emoji search" /></td>
+  </tr>
+</table>
+
+<sub>Real screenshots from the example app, verified running on web (react-native-web) and the iOS simulator (Fabric / New Architecture).</sub>
+
+</div>
+
+---
+
+## Why this exists
+
+Most React Native emoji pickers are unmaintained, ship years-old emoji, and break on the web. This library was built to close a real gap: **the same component, rendering correctly and identically on iOS, Android, and the web**, with current Unicode data and a proper virtualized grid.
+
+|  | **@softwhere-uz/react-native-emoji-keyboard** | `rn-emoji-keyboard` |
+|---|---|---|
+| Emoji version | **17.0** (Sept 2025) — 1,914 emoji | 11.0 (2018) |
+| Web | **first-class parity**, no patch needed | broken (empty grid after category change) — needs a userland patch |
+| Grid engine | **FlashList v2** (virtualized, recycled) | `FlatList` |
+| New Architecture / Fabric | **required & verified** on device | not guaranteed |
+| Theming | deep color-token `Theme` (restyle-compatible) | color-token `Theme` |
+| Storage | **swappable** async adapter (SQLite/MMKV/AsyncStorage/localStorage) | built-in only |
+| Maintained | **actively** | last publish 2024-05 |
+| Drop-in | **`EmojiType` / `Theme` / prop-compatible** | — |
+
+## Features
+
+- 🌍 **Truly universal** — one codebase for iOS, Android, and **web**; verified on device.
+- 🆕 **Emoji 17.0**, generated from [`emojibase-data`](https://emojibase.dev/) and bundled in — no separate data package.
+- ⚡ **FlashList v2** grid with sticky category headers, jump-to-category, and two-way scroll ↔ tab sync.
+- 🎨 **Deep theming** via a color-token `Theme` that matches `rn-emoji-keyboard` **and** `@shopify/restyle`.
+- 🎯 **Drop-in migration** — `EmojiType`, `Theme`, and the prop surface are byte-for-byte compatible ([MIGRATION.md](./MIGRATION.md)).
+- 👋🏽 **Skin tones** with a global default + in-picker selector.
+- 🔎 **Ranked search** over names and shortcodes.
+- 💾 **Bring-your-own storage** — the library owns no storage; pass an adapter (or none).
+- 🧩 **Headless core** — the hooks and pure helpers powering the UI are exported for custom pickers.
+- 🪶 **No `reanimated` requirement** in v0.1 — hard peers are just `react`, `react-native`, and `@shopify/flash-list`.
+
+## Table of contents
+
+- [Install](#install)
+- [Quick start](#quick-start)
+- [Usage](#usage)
+- [Props](#props)
+- [`EmojiType` payload](#emojitype-payload)
+- [Theming](#theming)
+- [Storage](#storage)
+- [Skin tones](#skin-tones)
+- [Search](#search)
+- [Bundled data](#bundled-data)
+- [Headless / advanced](#headless--advanced)
+- [Compatibility](#compatibility)
+- [How web parity works](#how-web-parity-works)
+- [Roadmap](#roadmap)
+- [Development](#development)
+- [License](#license)
 
 ## Install
 
 ```sh
 yarn add @softwhere-uz/react-native-emoji-keyboard @shopify/flash-list
-# optional peer (safe-area insets):
+# optional peer — safe-area insets:
 yarn add react-native-safe-area-context
 ```
 
 The Emoji 17.0 data ships **inside** this package — there is no separate data dependency to install.
 
-Peer dependencies:
+### Peer dependencies
 
 | Peer | Required | Notes |
 |---|---|---|
-| `react` | yes | `>=18` |
-| `react-native` | yes | `>=0.74`, New Architecture |
-| `@shopify/flash-list` | yes | `>=2.0.0` — the grid engine (v2 is JS-only, so it runs on web) |
-| `react-native-safe-area-context` | **optional** | Imported via a module-top `try/catch` with a zero-inset fallback; omit it and safe-area insets are simply `0` |
+| `react` | ✅ | `>=18` |
+| `react-native` | ✅ | `>=0.74`, **New Architecture** |
+| `@shopify/flash-list` | ✅ | `>=2.0.0` — the grid engine (v2 is JS-only, so it runs on web) |
+| `react-native-safe-area-context` | optional (`>=4.0.0`) | Resolved via a module-top `try/catch` with a zero-inset fallback; omit it and insets are simply `0` |
 
-## Bundled data
-
-The compact **Emoji 17.0** dataset ships inside this package and is re-exported from the main entry, so
-you can consume the raw data directly without an extra dependency:
+## Quick start
 
 ```tsx
-import { emojis, groups, meta } from '@softwhere-uz/react-native-emoji-keyboard';
-import type { CompactEmoji, EmojiGroup, EmojiMeta } from '@softwhere-uz/react-native-emoji-keyboard';
+import { EmojiKeyboard, type EmojiType } from '@softwhere-uz/react-native-emoji-keyboard';
+
+export function Picker() {
+  return <EmojiKeyboard onEmojiSelected={(e: EmojiType) => console.log(e.emoji)} />;
+}
 ```
 
-The data is generated from the pinned `emojibase-data` devDependency via `yarn codegen` (writes
-`src/data/generated/*`) and checked in. Because the data lives in the library, bumping to a new Unicode
-version is a **library release**: bump `emojibase-data`, run `yarn codegen`, and publish.
+The keyboard renders **inline** — give it (or its parent) a height; it is not a modal.
 
 ## Usage
 
-The keyboard renders **inline** (fill a container / panel yourself); it is not a modal.
-
-### Composer
+### Composer panel
 
 ```tsx
-import { EmojiKeyboard } from '@softwhere-uz/react-native-emoji-keyboard';
-import type { EmojiType } from '@softwhere-uz/react-native-emoji-keyboard';
+import { EmojiKeyboard, type EmojiType } from '@softwhere-uz/react-native-emoji-keyboard';
 import { View } from 'react-native';
 
 export function EmojiComposerPanel({ panelHeight }: { panelHeight: number }) {
@@ -69,8 +138,7 @@ export function EmojiComposerPanel({ panelHeight }: { panelHeight: number }) {
 ### Reaction picker (compact)
 
 ```tsx
-import { EmojiKeyboard } from '@softwhere-uz/react-native-emoji-keyboard';
-import type { EmojiType } from '@softwhere-uz/react-native-emoji-keyboard';
+import { EmojiKeyboard, type EmojiType } from '@softwhere-uz/react-native-emoji-keyboard';
 
 export function MessageReactionPicker({ onReact }: { onReact: (glyph: string) => void }) {
   return (
@@ -88,45 +156,44 @@ export function MessageReactionPicker({ onReact }: { onReact: (glyph: string) =>
 
 ## Props
 
-`EmojiKeyboardProps`. Every prop is optional except `onEmojiSelected`.
+`EmojiKeyboardProps` — every prop is optional except `onEmojiSelected`.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `onEmojiSelected` | `(emoji: EmojiType) => void` | — (**required**) | Fired when the user taps an emoji. `EmojiType` is byte-for-byte compatible with `rn-emoji-keyboard`. |
-| `emojiSize` | `number` | `28` | Glyph font size in px. Used to compute the column count when `numberOfColumns` is unset. |
-| `hideHeader` | `boolean` | `false` | Hide the header/knob row. |
-| `defaultHeight` | `number \| string` | — | Collapsed height of the keyboard (e.g. `280` for the reaction picker). |
-| `expandable` | `boolean` | `false` | Allow the keyboard to expand to `expandedHeight`. |
+| `onEmojiSelected` | `(emoji: EmojiType) => void` | **required** | Fired when the user taps an emoji. `EmojiType` is byte-for-byte compatible with `rn-emoji-keyboard`. |
+| `emojiSize` | `number` | `28` | Glyph font size (px). Also drives the column count when `numberOfColumns` is unset. |
+| `hideHeader` | `boolean` | `false` | Hide the header row (skin-tone selector + `customButtons`, and the expand knob when `expandable`). |
+| `defaultHeight` | `number \| string` | `'40%'` | Collapsed height of the keyboard (e.g. `280` for a reaction picker, or a `'%'` string). |
+| `expandable` | `boolean` | `false` | Allow the keyboard to expand to `expandedHeight` via the knob. |
 | `expandedHeight` | `number \| string` | — | Height when expanded (only meaningful with `expandable`). |
-| `translation` | `CategoryTranslation` | English labels | Per-category localized labels (`Record<CategoryTypes, string>`). |
-| `disabledCategories` | `CategoryTypes[]` | `[]` | Categories to hide from the tab bar and list. |
-| `enableRecentlyUsed` | `boolean` | `false` | Show a leading "Recently used" category. Requires a `storage` adapter to persist across sessions. |
-| `categoryPosition` | `'floating' \| 'top' \| 'bottom'` | `'floating'` | Where the category tab bar renders relative to the grid. |
+| `categoryPosition` | `'top' \| 'bottom' \| 'floating'` | `'top'` | Where the category tab bar renders relative to the grid. |
+| `enableRecentlyUsed` | `boolean` | `false` | Show a leading “Recently used” category. Pass `storage` to persist it across sessions. |
 | `enableSearchBar` | `boolean` | `false` | Show the search input. |
 | `hideSearchBarClearIcon` | `boolean` | `false` | Hide the clear (×) icon in the search bar. |
 | `categoryOrder` | `CategoryTypes[]` | `DEFAULT_CATEGORY_ORDER` | Override the category order. |
+| `disabledCategories` | `CategoryTypes[]` | `[]` | Categories to hide from the tab bar and list. |
+| `translation` | `CategoryTranslation` | English labels | Per-category localized labels (`Record<CategoryTypes, string>`). |
 | `disableSafeArea` | `boolean` | `false` | Do not apply safe-area insets (useful inside a clipped bottom sheet). |
-| `allowMultipleSelections` | `boolean` | `false` | Keep the picker open and allow selecting multiple emoji. |
 | `selectedEmojis` | `string[] \| false` | `false` | Glyphs to mark as already selected (highlighted via `theme.emoji.selected`). |
+| `allowMultipleSelections` | `boolean` | `false` | Accepted for `rn-emoji-keyboard` parity. The inline keyboard never closes on select, so multi-select is expressed through `selectedEmojis`. |
 | `theme` | `RecursivePartial<Theme>` | built-in | Color-token theme override (see [Theming](#theming)). |
-| `styles` | `RecursivePartial<Styles>` | — | Structural style overrides (`ViewStyle`/`TextStyle` per slot). |
-| `customButtons` | `React.ReactNode` | — | Extra buttons rendered alongside the category bar (e.g. backspace, globe). |
-| `emojisByCategory` | `EmojisByCategory[]` | derived from the bundled emoji data | Provide your own category → emoji data to fully override the dataset. |
-| `onCategoryChangeFailed` | `(info: { index; highestMeasuredFrameIndex; averageItemLength }) => void` | — | Called if a programmatic scroll-to-category fails (FlatList-compatible signature). |
-| `storage` | `StorageAdapter` | — | **First-party.** Async storage adapter for recents + skin-tone memory. Omit to disable persistence. |
-| `numberOfColumns` | `number` | computed from width / `emojiSize` | **First-party.** Force a fixed column count. |
-| `onActiveCategoryChange` | `(category: CategoryTypes) => void` | — | **First-party.** Fired when the active (visible) category changes via scroll or tab press. |
+| `styles` | `RecursivePartial<Styles>` | — | Structural `ViewStyle`/`TextStyle` overrides per slot. |
+| `customButtons` | `React.ReactNode` | — | Extra nodes rendered in the header row (e.g. backspace, globe). |
+| `emojisByCategory` | `EmojisByCategory[]` | bundled data | Provide your own category → emoji data to fully override the dataset. |
+| `onCategoryChangeFailed` | `(info) => void` | — | Called if a programmatic scroll-to-category fails (FlatList-compatible signature). |
+| `storage` | `StorageAdapter` | — | **First-party.** Async storage adapter for recents + skin tone. Omit to disable persistence. |
+| `numberOfColumns` | `number` | computed from width | **First-party.** Force a fixed column count. |
+| `onActiveCategoryChange` | `(category: CategoryTypes) => void` | — | **First-party.** Fired when the visible category changes via scroll or tab press. |
 | `defaultSkinTone` | `SkinTone` | `'none'` | **First-party.** Default skin tone applied to tone-enabled emoji. |
 
-`CategoryTypes` is one of: `smileys_emotion`, `people_body`, `animals_nature`, `food_drink`,
-`travel_places`, `activities`, `objects`, `symbols`, `flags`, plus the virtual `recently_used` and
-`search`. `SkinTone` is `'none' | 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark'`.
+`CategoryTypes`: `smileys_emotion`, `people_body`, `animals_nature`, `food_drink`, `travel_places`, `activities`, `objects`, `symbols`, `flags`, plus the virtual `recently_used` and `search`.
+`SkinTone`: `'none' | 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark'`.
 
-### `EmojiType` payload
+## `EmojiType` payload
 
 ```tsx
 type EmojiType = {
-  emoji: string;
+  emoji: string; // the (tone-resolved) glyph
   name: string;
   slug: string;
   unicode_version: string;
@@ -135,14 +202,14 @@ type EmojiType = {
 };
 ```
 
+This matches `rn-emoji-keyboard`'s `EmojiType` exactly, so existing `import type { EmojiType } from 'rn-emoji-keyboard'` code keeps working after the swap.
+
 ## Theming
 
-Pass a (partial) `Theme` of color tokens. The shape matches `rn-emoji-keyboard`'s `Theme` exactly, and
-is what a `@shopify/restyle` theme builder (e.g. TES-Chat's `buildEmojiKeyboardTheme`) already produces
-— so an existing restyle-derived theme object keeps working unchanged.
+Pass a (partial) `Theme` of color tokens. The shape matches `rn-emoji-keyboard`'s `Theme` exactly and is what a `@shopify/restyle` theme builder already produces — so an existing restyle-derived object keeps working unchanged.
 
 ```tsx
-import type { Theme } from '@softwhere-uz/react-native-emoji-keyboard';
+import { EmojiKeyboard, type Theme } from '@softwhere-uz/react-native-emoji-keyboard';
 
 const theme: Theme = {
   backdrop: '#00000055',
@@ -150,40 +217,20 @@ const theme: Theme = {
   container: '#ffffff',
   header: '#00000099',
   skinTonesContainer: '#e3dbcd',
-  category: {
-    icon: '#000000',
-    iconActive: '#005b96',
-    container: '#e3dbcd',
-    containerActive: '#d1e3ff',
-  },
-  search: {
-    background: '#00000011',
-    text: '#000000',
-    placeholder: '#00000066',
-    icon: '#00000066',
-  },
-  customButton: {
-    icon: '#000000',
-    iconPressed: '#005b96',
-    background: '#e3dbcd',
-    backgroundPressed: '#d1e3ff',
-  },
-  emoji: {
-    selected: '#d1e3ff',
-  },
+  category: { icon: '#000000', iconActive: '#005b96', container: '#e3dbcd', containerActive: '#d1e3ff' },
+  search: { background: '#00000011', text: '#000000', placeholder: '#00000066', icon: '#00000066' },
+  customButton: { icon: '#000000', iconPressed: '#005b96', background: '#e3dbcd', backgroundPressed: '#d1e3ff' },
+  emoji: { selected: '#d1e3ff' },
 };
 
 <EmojiKeyboard onEmojiSelected={onSelect} theme={theme} />;
 ```
 
-Every key is optional via `RecursivePartial<Theme>`; unspecified tokens fall back to the built-in
-defaults. Use `styles` (a `RecursivePartial<Styles>`) for structural `ViewStyle`/`TextStyle` overrides
-of the container, header, knob, category, search bar, and selected-emoji slots.
+Every key is optional via `RecursivePartial<Theme>`; unspecified tokens fall back to the built-in defaults (also exported as `defaultTheme`). Use `styles` for structural `ViewStyle`/`TextStyle` overrides of the container, header, knob, category, search bar, and selected-emoji slots.
 
 ## Storage
 
-The library owns **no** storage. Pass a `StorageAdapter` to persist recently-used emoji and the chosen
-skin tone. All methods may be sync or async:
+The library owns **no** storage. Pass a `StorageAdapter` to persist recently-used emoji and the chosen skin tone. All methods may be sync or async:
 
 ```tsx
 export interface StorageAdapter {
@@ -193,7 +240,8 @@ export interface StorageAdapter {
 }
 ```
 
-Concrete adapters:
+<details>
+<summary><b>Concrete adapters</b> (expo-sqlite · AsyncStorage · MMKV · localStorage)</summary>
 
 ```tsx
 // expo-sqlite (recommended native default)
@@ -202,16 +250,10 @@ const db = SQLite.openDatabaseSync('emoji-keyboard.db');
 db.execSync('CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT)');
 const sqliteAdapter: StorageAdapter = {
   getItem: (k) => db.getFirstSync<{ v: string }>('SELECT v FROM kv WHERE k = ?', [k])?.v ?? null,
-  setItem: (k, v) => {
-    db.runSync('INSERT OR REPLACE INTO kv (k, v) VALUES (?, ?)', [k, v]);
-  },
-  removeItem: (k) => {
-    db.runSync('DELETE FROM kv WHERE k = ?', [k]);
-  },
+  setItem: (k, v) => { db.runSync('INSERT OR REPLACE INTO kv (k, v) VALUES (?, ?)', [k, v]); },
+  removeItem: (k) => { db.runSync('DELETE FROM kv WHERE k = ?', [k]); },
 };
-```
 
-```tsx
 // @react-native-async-storage/async-storage
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const asyncStorageAdapter: StorageAdapter = {
@@ -219,9 +261,7 @@ const asyncStorageAdapter: StorageAdapter = {
   setItem: (k, v) => AsyncStorage.setItem(k, v),
   removeItem: (k) => AsyncStorage.removeItem(k),
 };
-```
 
-```tsx
 // react-native-mmkv
 import { MMKV } from 'react-native-mmkv';
 const mmkv = new MMKV();
@@ -230,9 +270,7 @@ const mmkvAdapter: StorageAdapter = {
   setItem: (k, v) => mmkv.set(k, v),
   removeItem: (k) => mmkv.delete(k),
 };
-```
 
-```tsx
 // localStorage (web)
 const localStorageAdapter: StorageAdapter = {
   getItem: (k) => localStorage.getItem(k),
@@ -241,18 +279,17 @@ const localStorageAdapter: StorageAdapter = {
 };
 ```
 
-Then:
+</details>
 
 ```tsx
 <EmojiKeyboard onEmojiSelected={onSelect} enableRecentlyUsed storage={sqliteAdapter} />
 ```
 
+Need an in-memory adapter for tests or web previews? Import `createMemoryAdapter()`.
+
 ## Skin tones
 
-Tone-enabled emoji carry five canonical Fitzpatrick variants (light, medium-light, medium,
-medium-dark, dark). Set a global default with `defaultSkinTone`; the picker also exposes a skin-tone
-selector. When a `storage` adapter is supplied, the chosen tone is remembered across sessions.
-(Per-emoji skin-tone memory is on the v0.2 roadmap.)
+Tone-enabled emoji carry the five canonical Fitzpatrick variants (light → dark). Set a global default with `defaultSkinTone`; the picker also exposes an in-header tone selector. With a `storage` adapter, the chosen tone is remembered across sessions. _(Per-emoji tone memory is on the [roadmap](#roadmap).)_
 
 ```tsx
 <EmojiKeyboard onEmojiSelected={onSelect} defaultSkinTone="medium-dark" storage={adapter} />
@@ -260,23 +297,97 @@ selector. When a `storage` adapter is supplied, the chosen tone is remembered ac
 
 ## Search
 
-Enable with `enableSearchBar`. v0.1 provides ranked English search (prefix → substring) over emoji
-names and shortcodes from the bundled emoji data. Search is a mode, not a scroll target — while a
-query is active the grid shows results instead of categories. (Multilingual CLDR search is on the
-roadmap.)
+Enable with `enableSearchBar`. v0.1 provides ranked English search (prefix → substring) over emoji names and shortcodes from the bundled data. Search is a **mode**, not a scroll target — while a query is active the grid shows results instead of categories. _(Multilingual CLDR search is on the [roadmap](#roadmap).)_
 
-## New Architecture & FlashList v2 / web parity
+## Bundled data
 
-- The grid engine is **`@shopify/flash-list` v2** — New-Architecture-only and **JS-only** (no native
-  module), which is why the same grid runs on **react-native-web**. v2 is auto-sized (no
-  `estimatedItemSize`); the library uses `getItemType` for header/row recycling, `stickyHeaderIndices`,
-  and `scrollToIndex` + `onViewableItemsChanged` for two-way tab ↔ list sync.
-- **Web parity is designed in.** The grid reveal uses `requestAnimationFrame` / measured layout — never
-  `InteractionManager` — so the incumbent's empty-grid-after-category-change bug on web cannot occur. A
-  web smoke test guards this in CI.
-- `react-native-safe-area-context` is imported once at module top inside a `try/catch` with a zero-inset
-  fallback, so hook identity stays stable whether or not the peer is installed.
+The compact **Emoji 17.0** dataset (1,914 emoji, ~64&nbsp;KB gzipped) ships inside this package and is re-exported from the main entry, so you can consume the raw data with no extra dependency:
+
+```tsx
+import { emojis, groups, meta } from '@softwhere-uz/react-native-emoji-keyboard';
+import type { CompactEmoji, EmojiGroup, EmojiMeta } from '@softwhere-uz/react-native-emoji-keyboard';
+
+meta.emojiVersion; // "17.0"
+emojis.length;     // 1914
+```
+
+`CompactEmoji` uses short keys to keep the bundle small:
+
+```ts
+type CompactEmoji = {
+  e: string;    // glyph
+  n: string;    // name / label
+  g: number;    // emojibase group id (0,1,3–9)
+  o: number;    // canonical sort order
+  k?: string[]; // search keywords
+  s?: string[]; // shortcodes
+  v?: number;   // emoji spec version (numeric, e.g. 17)
+  t?: string[]; // 5 tone-variant glyphs, light → dark
+};
+```
+
+The data is generated from the pinned `emojibase-data` devDependency via `yarn codegen` and checked in. Because it lives in the library, a new Unicode version is a **library release**: bump `emojibase-data`, run `yarn codegen`, publish.
+
+## Headless / advanced
+
+Building a custom picker? The hooks and pure helpers that power `<EmojiKeyboard>` are all exported:
+
+```tsx
+import {
+  // pure helpers
+  searchEmojis, applyTone, toEmojiType, buildGrid, slugify, toneIndex,
+  // hooks
+  useEmojiData, useSearch, useRecents, useSkinTone, useCategorySync, useReveal,
+  // data + utilities
+  emojis, defaultTheme, createMemoryAdapter,
+} from '@softwhere-uz/react-native-emoji-keyboard';
+
+// e.g. a headless "search → resolve tone → payload" pipeline:
+const [top] = searchEmojis('rocket', emojis);   // CompactEmoji
+const glyph = applyTone(top, 'medium');         // "🚀"
+const payload = toEmojiType(top, glyph);        // EmojiType
+```
+
+`useReveal` is the pure, platform-agnostic `requestAnimationFrame` reveal hook that makes the web empty-grid bug impossible ([details](#how-web-parity-works)).
+
+## Compatibility
+
+| | |
+|---|---|
+| **Platforms** | iOS, Android, Web (react-native-web) |
+| **React Native** | `>=0.74` — **New Architecture required** (FlashList v2 is New-Arch-only) |
+| **React** | `>=18` |
+| **Expo** | works with the New-Architecture SDKs; **verified on Expo SDK 56 / RN 0.85** |
+| **Verified on device** | Web (react-native-web) and iOS (iPhone 16 Pro simulator, Fabric) |
+
+## How web parity works
+
+The incumbent gated first paint on a deferred post-interaction callback, which does not reliably fire on react-native-web — leaving the grid **empty after a category change**. This library makes that impossible by construction:
+
+- The grid engine is **FlashList v2** — JS-only (no native module), so the *same* virtualized grid runs on native and web.
+- First paint is revealed via **`requestAnimationFrame`** (never `InteractionManager`), and the reveal never re-hides on scroll — so the grid can’t be left blank. A jsdom smoke test guards this in CI.
+- `react-native-safe-area-context` is resolved once at module load inside a `try/catch`, keeping hook identity stable whether or not the peer is installed.
+
+## Roadmap
+
+- **v0.2** — headless composable `Root/Search/List/SkinTone` parts, per-emoji skin-tone memory, frecency ranking, multilingual CLDR search, accessibility (screen reader / keyboard nav / RTL), a compact `ReactionStrip`.
+- **v1.0** — an Expo config plugin for an optional consistent bundled glyph set, a dual-mode renderer (system vs bundled glyphs), and a provider/panel API for Stickers + GIF tabs.
+
+## Development
+
+This is a Yarn-workspaces monorepo (`packages/react-native-emoji-keyboard` + `example`).
+
+```sh
+yarn                # install
+yarn codegen        # regenerate the bundled Emoji data from emojibase-data
+yarn typecheck      # tsc --noEmit
+yarn test           # jest (incl. the web-reveal smoke gate)
+yarn lint           # eslint
+yarn build          # react-native-builder-bob → CJS + ESM + .d.ts
+
+cd example && yarn && npx expo start   # dogfood on iOS / Android / Web
+```
 
 ## License
 
-MIT.
+MIT © [softwhere-uz](https://github.com/softwhere-uz)
