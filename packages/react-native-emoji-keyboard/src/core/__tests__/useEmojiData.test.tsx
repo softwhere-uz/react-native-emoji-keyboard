@@ -52,3 +52,32 @@ describe('useEmojiData — tofu-gating', () => {
     expect(api.sections).toHaveLength(0);
   });
 });
+
+describe('useEmojiData — shouldInclude filter', () => {
+  it('hides emoji the predicate rejects (flags, group 9) and drops the emptied category', async () => {
+    await act(async () => {
+      render(<Probe {...base} shouldInclude={(e) => e.g !== 9} />);
+    });
+    expect(gridEmoji(api.grid).some((r) => r.source.g === 9)).toBe(false);
+    expect(api.sections.some((s) => s.category === 'flags')).toBe(false);
+    expect(api.sections.some((s) => s.category === 'smileys_emotion')).toBe(true);
+  });
+
+  it('filters search results too (excluding all → empty search section)', async () => {
+    const results = [{ e: '😀', n: 'grinning face', g: 0, o: 0 }];
+    await act(async () => {
+      render(<Probe {...base} searchResults={results} shouldInclude={() => false} />);
+    });
+    expect(api.sections).toHaveLength(1);
+    expect(api.sections[0]?.category).toBe('search');
+    expect(gridEmoji(api.grid)).toHaveLength(0);
+  });
+
+  it('composes with maxEmojiVersion (both filters apply)', async () => {
+    await act(async () => {
+      render(<Probe {...base} maxEmojiVersion={15} shouldInclude={(e) => e.g !== 9} />);
+    });
+    const rows = gridEmoji(api.grid);
+    expect(rows.every((r) => (r.source.v == null || r.source.v <= 15) && r.source.g !== 9)).toBe(true);
+  });
+});

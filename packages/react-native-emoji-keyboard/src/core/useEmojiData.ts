@@ -138,6 +138,8 @@ export function useEmojiData(opts: {
   emojisByCategoryOverride?: EmojisByCategory[];
   /** Hide emoji newer than this Emoji spec version (tofu-gating). */
   maxEmojiVersion?: number;
+  /** Keep only emoji for which this returns true (e.g. hide flags). Memoize it. */
+  shouldInclude?: (emoji: CompactEmoji) => boolean;
 }): { grid: GridModel; sections: Section[] } {
   const {
     categoryOrder,
@@ -151,20 +153,27 @@ export function useEmojiData(opts: {
     translation,
     emojisByCategoryOverride,
     maxEmojiVersion,
+    shouldInclude,
   } = opts;
 
   const sections = React.useMemo<Section[]>(() => {
     // Search mode: a single virtual "search" section of the results. A non-null
     // array means "searching" — even when EMPTY, so a query that matches nothing
     // shows an empty result rather than falling back to the whole emoji grid.
+    // Combined per-list filter: tofu-gating then the consumer predicate.
+    const applyFilters = (list: CompactEmoji[]): CompactEmoji[] => {
+      const versioned = filterByEmojiVersion(list, maxEmojiVersion);
+      return shouldInclude ? versioned.filter(shouldInclude) : versioned;
+    };
+
     if (Array.isArray(searchResults)) {
-      // Keep the (possibly empty) search section so a gated-away or no-match
+      // Keep the (possibly empty) search section so a filtered-away or no-match
       // query still shows an empty result rather than the full grid.
       return [
         {
           category: 'search',
           label: labelFor('search', translation),
-          emojis: filterByEmojiVersion(searchResults, maxEmojiVersion),
+          emojis: applyFilters(searchResults),
         },
       ];
     }
@@ -181,15 +190,15 @@ export function useEmojiData(opts: {
       override: emojisByCategoryOverride,
     });
 
-    // Tofu-gating: drop emoji newer than the target version, then drop any
-    // category the filter emptied so no blank header shows.
-    if (maxEmojiVersion == null) return base;
-    const gated: Section[] = [];
+    // No filter active → return as-is. Otherwise filter, dropping any category
+    // the filter emptied so no blank header shows.
+    if (maxEmojiVersion == null && !shouldInclude) return base;
+    const filtered: Section[] = [];
     for (const section of base) {
-      const emojis = filterByEmojiVersion(section.emojis, maxEmojiVersion);
-      if (emojis.length > 0) gated.push({ ...section, emojis });
+      const emojis = applyFilters(section.emojis);
+      if (emojis.length > 0) filtered.push({ ...section, emojis });
     }
-    return gated;
+    return filtered;
   }, [
     categoryOrder,
     disabledCategories,
@@ -199,6 +208,7 @@ export function useEmojiData(opts: {
     translation,
     emojisByCategoryOverride,
     maxEmojiVersion,
+    shouldInclude,
   ]);
 
   const grid = React.useMemo<GridModel>(

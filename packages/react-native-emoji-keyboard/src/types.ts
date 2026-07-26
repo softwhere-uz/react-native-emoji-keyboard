@@ -9,6 +9,7 @@
  */
 import type * as React from 'react';
 import type { TextStyle, ViewStyle } from 'react-native';
+import type { CompactEmoji } from './data';
 
 // --- categories ----------------------------------------------------------
 
@@ -199,4 +200,15 @@ export interface EmojiKeyboardProps {
    * full bundled set (Emoji 17.0). Analogous to emoji-mart's `emojiVersion`.
    */
   maxEmojiVersion?: number;
+  /**
+   * Predicate to include/exclude individual emoji — return `false` to hide.
+   * Applies to every category and to search results. Wrap in `useCallback` so
+   * the grid isn't rebuilt on every render. E.g. hide flags: `(e) => e.g !== 9`.
+   */
+  shouldInclude?: (emoji: CompactEmoji) => boolean;
+  /**
+   * Override the tab-strip icon for one or more categories with a custom node
+   * (any element). Categories left out keep their default emoji glyph icon.
+   */
+  categoryIcons?: Partial<Record<CategoryTypes, React.ReactNode>>;
 }

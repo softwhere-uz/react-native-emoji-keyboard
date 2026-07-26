@@ -41,6 +41,8 @@ export type CategoryBarProps = {
   onPressCategory: (category: CategoryTypes) => void;
   /** Placement — affects container styling (elevation/floating). */
   position: CategoryPosition;
+  /** Optional custom icon node per category; falls back to the default glyph. */
+  icons?: Partial<Record<CategoryTypes, React.ReactNode>>;
 };
 
 function CategoryBarComponent({
@@ -48,6 +50,7 @@ function CategoryBarComponent({
   activeCategory,
   onPressCategory,
   position,
+  icons,
 }: CategoryBarProps): React.ReactElement {
   const theme = useTheme();
   const styles = useStyles();
@@ -65,6 +68,7 @@ function CategoryBarComponent({
     >
       {categories.map((category) => {
         const active = category === activeCategory;
+        const customIcon = icons?.[category];
         return (
           <Pressable
             key={category}
@@ -79,15 +83,19 @@ function CategoryBarComponent({
               },
             ]}
           >
-            <Text
-              style={[
-                localStyles.icon,
-                { color: active ? theme.category.iconActive : theme.category.icon },
-                styles.category.icon,
-              ]}
-            >
-              {CATEGORY_ICON[category]}
-            </Text>
+            {customIcon != null ? (
+              customIcon
+            ) : (
+              <Text
+                style={[
+                  localStyles.icon,
+                  { color: active ? theme.category.iconActive : theme.category.icon },
+                  styles.category.icon,
+                ]}
+              >
+                {CATEGORY_ICON[category]}
+              </Text>
+            )}
           </Pressable>
         );
       })}
