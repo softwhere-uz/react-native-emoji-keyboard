@@ -62,9 +62,17 @@
     "@shopify/flash-list": ">=2.0.0",
     "react": ">=18.0.0",
     "react-native": ">=0.74.0",
+    "react-native-gesture-handler": ">=2.0.0",
+    "react-native-reanimated": ">=3.0.0",
     "react-native-safe-area-context": ">=4.0.0"
   },
   "peerDependenciesMeta": {
+    "react-native-gesture-handler": {
+      "optional": true
+    },
+    "react-native-reanimated": {
+      "optional": true
+    },
     "react-native-safe-area-context": {
       "optional": true
     }

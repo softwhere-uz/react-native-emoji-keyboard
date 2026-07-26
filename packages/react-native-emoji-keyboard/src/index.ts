@@ -15,6 +15,10 @@ export default EmojiKeyboard;
 export { ReactionStrip } from './components/ReactionStrip';
 export type { ReactionStripProps } from './components/ReactionStrip';
 
+// --- bottom-sheet surface ------------------------------------------------
+export { EmojiModal } from './components/EmojiModal';
+export type { EmojiModalProps } from './components/EmojiModal';
+
 // --- public types (incumbent-compatible) ---------------------------------
 export type {
   EmojiType,
