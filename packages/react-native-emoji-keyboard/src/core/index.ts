@@ -18,6 +18,7 @@ export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 export { useReveal } from './useReveal';
 export { useRecents } from './useRecents';
 export { useSkinTone } from './useSkinTone';
+export { useMultiSelect } from './useMultiSelect';
 export { useSearch } from './useSearch';
 export { useEmojiData } from './useEmojiData';
 export { useCategorySync } from './useCategorySync';

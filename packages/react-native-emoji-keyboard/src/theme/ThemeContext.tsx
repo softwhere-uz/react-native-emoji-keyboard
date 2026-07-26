@@ -29,17 +29,24 @@ const ThemeContext = createContext<ResolvedTheme>(DEFAULT_RESOLVED);
 export type ThemeProviderProps = {
   theme?: RecursivePartial<Theme>;
   styles?: RecursivePartial<Styles>;
+  /** Fully-populated base to merge `theme` over (e.g. dark). Defaults to light. */
+  baseTheme?: Theme;
   children: React.ReactNode;
 };
 
 /** Provides a resolved `{ theme, styles }` derived from the partial overrides. */
-export function ThemeProvider({ theme, styles, children }: ThemeProviderProps): React.ReactElement {
+export function ThemeProvider({
+  theme,
+  styles,
+  baseTheme = defaultTheme,
+  children,
+}: ThemeProviderProps): React.ReactElement {
   const value = useMemo<ResolvedTheme>(
     () => ({
-      theme: mergeTheme(defaultTheme, theme),
+      theme: mergeTheme(baseTheme, theme),
       styles: mergeStyles(emptyStyles, styles),
     }),
-    [theme, styles],
+    [theme, styles, baseTheme],
   );
 
   return createElement(ThemeContext.Provider, { value }, children);

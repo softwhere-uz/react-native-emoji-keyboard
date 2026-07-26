@@ -38,6 +38,36 @@ export const defaultTheme: Theme = {
   },
 };
 
+/** Complete neutral **dark** theme — the auto counterpart to {@link defaultTheme}. */
+export const darkTheme: Theme = {
+  backdrop: '#000000aa',
+  knob: '#5a5a5e',
+  container: '#1c1c1e',
+  header: '#ffffff99',
+  skinTonesContainer: '#2c2c2e',
+  category: {
+    icon: '#ffffffcc',
+    iconActive: '#4aa3df',
+    container: '#2c2c2e',
+    containerActive: '#0a3d5c',
+  },
+  search: {
+    background: '#ffffff14',
+    text: '#ffffffe6',
+    placeholder: '#ffffff66',
+    icon: '#ffffff66',
+  },
+  customButton: {
+    icon: '#ffffffcc',
+    iconPressed: '#4aa3df',
+    background: '#2c2c2e',
+    backgroundPressed: '#0a3d5c',
+  },
+  emoji: {
+    selected: '#3a3a3c',
+  },
+};
+
 /** Empty `Styles` — an empty `{}` style object for every key. */
 export const emptyStyles: Styles = {
   container: {},

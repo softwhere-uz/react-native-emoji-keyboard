@@ -46,6 +46,8 @@ export type EmojiGridProps = {
   onSelect: (emoji: RenderEmoji) => void;
   /** Fired when a tone-enabled emoji is long-pressed. */
   onLongPress?: (emoji: RenderEmoji, layout: EmojiCellLayout) => void;
+  /** Fired on press-in — the emoji became "active" (drives the preview bar). */
+  onActivate?: (emoji: RenderEmoji) => void;
   /** Fired when the top-most visible category changes via scroll. */
   onActiveCategoryChange?: (category: CategoryTypes) => void;
   /** Fired when a programmatic jump-to-category scroll fails. */
@@ -74,6 +76,7 @@ function EmojiGridComponent(
     selectedEmojis,
     onSelect,
     onLongPress,
+    onActivate,
     onActiveCategoryChange,
     onScrollToIndexFailed,
   } = props;
@@ -115,12 +118,13 @@ function EmojiGridComponent(
               selected={selectedEmojis?.has(emoji.glyph)}
               onPress={onSelect}
               onLongPress={onLongPress}
+              onActivate={onActivate}
             />
           ))}
         </View>
       );
     },
-    [emojiSize, widthPercent, selectedEmojis, onSelect, onLongPress]
+    [emojiSize, widthPercent, selectedEmojis, onSelect, onLongPress, onActivate]
   );
 
   const keyExtractor = React.useCallback((item: GridItem) => item.key, []);

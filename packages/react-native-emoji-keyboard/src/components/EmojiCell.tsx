@@ -34,6 +34,8 @@ export type EmojiCellProps = {
   onPress: (emoji: RenderEmoji) => void;
   /** Long-pressed (meaningful when the emoji is tone-enabled). */
   onLongPress?: (emoji: RenderEmoji, layout: EmojiCellLayout) => void;
+  /** Pressed in — used to drive the preview bar (the emoji became "active"). */
+  onActivate?: (emoji: RenderEmoji) => void;
 };
 
 function EmojiCellComponent({
@@ -43,6 +45,7 @@ function EmojiCellComponent({
   selected = false,
   onPress,
   onLongPress,
+  onActivate,
 }: EmojiCellProps): React.ReactElement {
   const theme = useTheme();
   const containerRef = React.useRef<React.ComponentRef<typeof Pressable>>(null);
@@ -50,6 +53,10 @@ function EmojiCellComponent({
   const handlePress = React.useCallback(() => {
     onPress(emoji);
   }, [emoji, onPress]);
+
+  const handlePressIn = React.useCallback(() => {
+    onActivate?.(emoji);
+  }, [emoji, onActivate]);
 
   const handleLongPress = React.useCallback(() => {
     if (!onLongPress) return;
@@ -75,6 +82,7 @@ function EmojiCellComponent({
     <Pressable
       ref={containerRef}
       onPress={handlePress}
+      onPressIn={onActivate ? handlePressIn : undefined}
       onLongPress={onLongPress ? handleLongPress : undefined}
       // Only arm the long-press delay when it can do something useful.
       delayLongPress={toneEnabled ? 300 : undefined}

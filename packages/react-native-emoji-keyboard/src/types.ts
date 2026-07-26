@@ -195,6 +195,12 @@ export interface EmojiKeyboardProps {
   /** Default skin tone applied to tone-enabled emoji. Defaults to `'none'`. */
   defaultSkinTone?: SkinTone;
   /**
+   * Base color scheme. `'auto'` follows the OS (`prefers-color-scheme` on web).
+   * `'light'` (default) / `'dark'` force one. The `theme` prop merges on top of
+   * whichever base is chosen, so partial overrides still win.
+   */
+  colorScheme?: 'light' | 'dark' | 'auto';
+  /**
    * Hide emoji introduced after this Emoji spec version (e.g. `15`) so devices
    * with an older system font never render the □ "tofu" box. Omit to show the
    * full bundled set (Emoji 17.0). Analogous to emoji-mart's `emojiVersion`.
@@ -211,4 +217,9 @@ export interface EmojiKeyboardProps {
    * (any element). Categories left out keep their default emoji glyph icon.
    */
   categoryIcons?: Partial<Record<CategoryTypes, React.ReactNode>>;
+  /**
+   * Show a preview bar (glyph + name + shortcode) for the emoji under the
+   * finger/pointer, below the grid. Defaults to `false`.
+   */
+  enablePreview?: boolean;
 }

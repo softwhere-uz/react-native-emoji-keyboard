@@ -31,7 +31,7 @@ export { emojis, groups, meta } from './data';
 export type { CompactEmoji, EmojiGroup, EmojiMeta } from './data';
 
 // --- theming -------------------------------------------------------------
-export { defaultTheme } from './theme';
+export { defaultTheme, darkTheme } from './theme';
 
 // --- storage -------------------------------------------------------------
 export { createMemoryAdapter } from './core';
@@ -52,6 +52,7 @@ export {
   useReveal,
   useRecents,
   useSkinTone,
+  useMultiSelect,
   useSearch,
   useEmojiData,
   useCategorySync,
