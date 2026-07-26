@@ -11,6 +11,10 @@ import { EmojiKeyboard } from './components/EmojiKeyboard';
 export { EmojiKeyboard };
 export default EmojiKeyboard;
 
+// --- quick-reaction row --------------------------------------------------
+export { ReactionStrip } from './components/ReactionStrip';
+export type { ReactionStripProps } from './components/ReactionStrip';
+
 // --- public types (incumbent-compatible) ---------------------------------
 export type {
   EmojiType,
@@ -46,6 +50,8 @@ export {
   buildGrid,
   searchEmojis,
   filterByEmojiVersion,
+  resolveReaction,
+  DEFAULT_QUICK_REACTIONS,
   readAdapter,
   writeAdapter,
   // hooks

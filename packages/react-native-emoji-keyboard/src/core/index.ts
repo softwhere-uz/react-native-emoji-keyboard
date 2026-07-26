@@ -12,6 +12,7 @@ export { toneIndex, applyTone, slugify, toEmojiType } from './skinTone';
 export { buildGrid } from './buildGrid';
 export { searchEmojis } from './search';
 export { filterByEmojiVersion } from './version';
+export { resolveReaction, DEFAULT_QUICK_REACTIONS } from './reactions';
 export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 
 // Hooks.
