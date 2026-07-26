@@ -80,6 +80,8 @@ function EmojiCellComponent({
       delayLongPress={toneEnabled ? 300 : undefined}
       accessibilityRole="button"
       accessibilityLabel={emoji.source.n}
+      accessibilityState={{ selected }}
+      accessibilityHint={toneEnabled ? 'Long press to choose a skin tone' : undefined}
       style={[
         styles.cell,
         { width: widthPercent, height: cellHeight },

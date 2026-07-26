@@ -21,7 +21,11 @@ function CategoryHeaderComponent({ label }: CategoryHeaderProps): React.ReactEle
 
   return (
     <View style={[localStyles.container, { backgroundColor: theme.container }]}>
-      <Text style={[localStyles.label, { color: theme.header }, styles.header]} numberOfLines={1}>
+      <Text
+        accessibilityRole="header"
+        style={[localStyles.label, { color: theme.header }, styles.header]}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </View>

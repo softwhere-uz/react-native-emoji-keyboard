@@ -45,6 +45,7 @@ export {
   toEmojiType,
   buildGrid,
   searchEmojis,
+  filterByEmojiVersion,
   readAdapter,
   writeAdapter,
   // hooks

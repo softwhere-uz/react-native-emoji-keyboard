@@ -20,6 +20,7 @@ import type { RenderEmoji } from '../core';
 import { SKIN_TONES } from '../constants';
 import type { SkinTone } from '../types';
 import { useTheme } from '../theme';
+import { useReducedMotion } from './useReducedMotion';
 import type { EmojiCellLayout } from './EmojiCell';
 
 /** Representative swatch color per tone for the global picker dots. */
@@ -100,15 +101,21 @@ export function SkinTonePopover({
   onDismiss,
 }: SkinTonePopoverProps): React.ReactElement {
   const theme = useTheme();
+  const reduceMotion = useReducedMotion();
   const progress = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
+    // Respect "reduce motion": appear instantly instead of scaling/fading in.
+    if (reduceMotion) {
+      progress.setValue(1);
+      return;
+    }
     Animated.timing(progress, {
       toValue: 1,
       duration: 120,
       useNativeDriver: true,
     }).start();
-  }, [progress]);
+  }, [progress, reduceMotion]);
 
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] });
 

@@ -22,6 +22,12 @@ export interface CompactEmoji {
   k?: string[];
   /** Shortcodes (emojibase preset), e.g. `["wave"]`. Absent when none. */
   s?: string[];
+  /**
+   * Text emoticons that map to this glyph, e.g. `[":)"]` for 🙂 or `["xD","XD"]`
+   * for 😆. Normalized to an array. Absent when the emoji has none (~49 have one).
+   * Used for emoticon-aware search (`:)` → 🙂).
+   */
+  m?: string[];
   /** Emoji spec version this glyph was introduced in (for future tofu-gating). */
   v?: number;
   /**

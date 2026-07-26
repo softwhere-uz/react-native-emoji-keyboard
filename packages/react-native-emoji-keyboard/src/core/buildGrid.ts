@@ -14,9 +14,17 @@ import type { GridItem, GridModel, RenderEmoji, Section } from './internal-types
  *
  * @param sections     Ordered logical sections (header + emoji).
  * @param numColumns   Emoji per row; clamped to `>= 1`.
- * @param tone         Active skin tone applied per-emoji via {@link applyTone}.
+ * @param tone         Global default skin tone applied per-emoji via {@link applyTone}.
+ * @param toneMemory   Optional per-emoji tone overrides keyed by BASE glyph
+ *                     (`CompactEmoji.e`); an entry wins over `tone` for that
+ *                     emoji, so each glyph can remember its own tone.
  */
-export function buildGrid(sections: Section[], numColumns: number, tone: SkinTone): GridModel {
+export function buildGrid(
+  sections: Section[],
+  numColumns: number,
+  tone: SkinTone,
+  toneMemory?: Readonly<Record<string, SkinTone>>
+): GridModel {
   const columns = Math.max(1, Math.floor(numColumns) || 1);
 
   const items: GridItem[] = [];
@@ -42,7 +50,9 @@ export function buildGrid(sections: Section[], numColumns: number, tone: SkinTon
       for (let c = 0; c < columns; c += 1) {
         const emoji = emojis[i + c];
         if (!emoji) break;
-        rowEmojis.push({ glyph: applyTone(emoji, tone), source: emoji });
+        // A remembered per-emoji tone overrides the global default for this glyph.
+        const effectiveTone = toneMemory?.[emoji.e] ?? tone;
+        rowEmojis.push({ glyph: applyTone(emoji, effectiveTone), source: emoji });
       }
       items.push({
         type: 'row',

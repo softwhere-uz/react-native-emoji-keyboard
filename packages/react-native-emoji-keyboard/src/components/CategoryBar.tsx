@@ -11,6 +11,7 @@ import * as React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { CategoryPosition, CategoryTypes } from '../types';
+import { DEFAULT_CATEGORY_LABELS } from '../constants';
 import { useStyles, useTheme } from '../theme';
 
 /**
@@ -53,6 +54,8 @@ function CategoryBarComponent({
 
   return (
     <View
+      accessibilityRole="tablist"
+      accessibilityLabel="Emoji categories"
       style={[
         localStyles.container,
         position === 'floating' ? localStyles.floating : null,
@@ -68,7 +71,7 @@ function CategoryBarComponent({
             onPress={() => onPressCategory(category)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            accessibilityLabel={category}
+            accessibilityLabel={DEFAULT_CATEGORY_LABELS[category]}
             style={[
               localStyles.tab,
               {

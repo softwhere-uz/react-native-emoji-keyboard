@@ -114,4 +114,40 @@ describe('buildGrid', () => {
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => r.emojis.map((x) => x.glyph))).toEqual([['a'], ['b']]);
   });
+
+  describe('per-emoji tone memory', () => {
+    /** Two tone-enabled emoji with distinct five-tone sets. */
+    const wave: CompactEmoji = {
+      e: '👋',
+      n: 'waving hand',
+      g: 1,
+      o: 0,
+      t: ['👋🏻', '👋🏼', '👋🏽', '👋🏾', '👋🏿'],
+    };
+    const santa: CompactEmoji = {
+      e: '🎅',
+      n: 'santa claus',
+      g: 1,
+      o: 1,
+      t: ['🎅🏻', '🎅🏼', '🎅🏽', '🎅🏾', '🎅🏿'],
+    };
+    const section: Section = { category: 'people_body', label: 'People', emojis: [wave, santa] };
+
+    it("overrides the global default with each emoji's remembered tone", () => {
+      // Global default = dark; but 👋 is remembered as light.
+      const grid = buildGrid([section], 2, 'dark', { '👋': 'light' });
+      const row = grid.items.find(isRow);
+      const glyphs = row && isRow(row) ? row.emojis.map((r) => r.glyph) : null;
+      // 👋 → light (t[0]); 🎅 → dark global default (t[4]).
+      expect(glyphs).toEqual(['👋🏻', '🎅🏿']);
+    });
+
+    it('falls back to the global default when an emoji has no memory entry', () => {
+      const grid = buildGrid([section], 2, 'medium', { '🙉': 'dark' });
+      const row = grid.items.find(isRow);
+      const glyphs = row && isRow(row) ? row.emojis.map((r) => r.glyph) : null;
+      // Neither glyph is in memory → both use the global 'medium' (t[2]).
+      expect(glyphs).toEqual(['👋🏽', '🎅🏽']);
+    });
+  });
 });

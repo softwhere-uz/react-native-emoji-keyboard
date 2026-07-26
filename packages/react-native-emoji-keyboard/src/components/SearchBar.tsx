@@ -38,18 +38,26 @@ export function SearchBar({
 
   return (
     <View
+      accessibilityRole="search"
       style={[
         localStyles.container,
         { backgroundColor: theme.search.background },
         styles.searchBar.container,
       ]}
     >
-      <Text style={[localStyles.icon, { color: theme.search.icon }]}>🔍</Text>
+      <Text
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={[localStyles.icon, { color: theme.search.icon }]}
+      >
+        🔍
+      </Text>
       <TextInput
         value={query}
         onChangeText={setQuery}
         placeholder={placeholder}
         placeholderTextColor={theme.search.placeholder}
+        accessibilityLabel={placeholder}
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"

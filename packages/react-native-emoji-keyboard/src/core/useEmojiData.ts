@@ -16,6 +16,7 @@ import {
 } from '../constants';
 import type { CategoryTypes, EmojiType, EmojisByCategory, JsonEmoji, SkinTone } from '../types';
 import { buildGrid } from './buildGrid';
+import { filterByEmojiVersion } from './version';
 import type { GridModel, Section } from './internal-types';
 
 /**
@@ -130,10 +131,13 @@ export function useEmojiData(opts: {
   enableRecentlyUsed?: boolean;
   recents?: EmojiType[];
   skinTone: SkinTone;
+  toneMemory?: Readonly<Record<string, SkinTone>>;
   numColumns: number;
   searchResults?: CompactEmoji[] | null;
   translation?: Partial<Record<CategoryTypes, string>>;
   emojisByCategoryOverride?: EmojisByCategory[];
+  /** Hide emoji newer than this Emoji spec version (tofu-gating). */
+  maxEmojiVersion?: number;
 }): { grid: GridModel; sections: Section[] } {
   const {
     categoryOrder,
@@ -141,10 +145,12 @@ export function useEmojiData(opts: {
     enableRecentlyUsed = false,
     recents,
     skinTone,
+    toneMemory,
     numColumns,
     searchResults,
     translation,
     emojisByCategoryOverride,
+    maxEmojiVersion,
   } = opts;
 
   const sections = React.useMemo<Section[]>(() => {
@@ -152,11 +158,13 @@ export function useEmojiData(opts: {
     // array means "searching" — even when EMPTY, so a query that matches nothing
     // shows an empty result rather than falling back to the whole emoji grid.
     if (Array.isArray(searchResults)) {
+      // Keep the (possibly empty) search section so a gated-away or no-match
+      // query still shows an empty result rather than the full grid.
       return [
         {
           category: 'search',
           label: labelFor('search', translation),
-          emojis: searchResults,
+          emojis: filterByEmojiVersion(searchResults, maxEmojiVersion),
         },
       ];
     }
@@ -164,7 +172,7 @@ export function useEmojiData(opts: {
     const order = categoryOrder ?? [...DEFAULT_CATEGORY_ORDER];
     const disabled = new Set<CategoryTypes>(disabledCategories ?? []);
 
-    return buildDefaultSections({
+    const base = buildDefaultSections({
       categoryOrder: order,
       disabled,
       enableRecentlyUsed,
@@ -172,6 +180,16 @@ export function useEmojiData(opts: {
       translation,
       override: emojisByCategoryOverride,
     });
+
+    // Tofu-gating: drop emoji newer than the target version, then drop any
+    // category the filter emptied so no blank header shows.
+    if (maxEmojiVersion == null) return base;
+    const gated: Section[] = [];
+    for (const section of base) {
+      const emojis = filterByEmojiVersion(section.emojis, maxEmojiVersion);
+      if (emojis.length > 0) gated.push({ ...section, emojis });
+    }
+    return gated;
   }, [
     categoryOrder,
     disabledCategories,
@@ -180,11 +198,12 @@ export function useEmojiData(opts: {
     searchResults,
     translation,
     emojisByCategoryOverride,
+    maxEmojiVersion,
   ]);
 
   const grid = React.useMemo<GridModel>(
-    () => buildGrid(sections, numColumns, skinTone),
-    [sections, numColumns, skinTone]
+    () => buildGrid(sections, numColumns, skinTone, toneMemory),
+    [sections, numColumns, skinTone, toneMemory]
   );
 
   return { grid, sections };

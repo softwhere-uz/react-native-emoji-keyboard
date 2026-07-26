@@ -69,6 +69,7 @@ const emojis = kept.map((e) => {
   if (e.tags && e.tags.length) rec.k = e.tags;
   const sc = shortcodes[e.hexcode];
   if (sc) rec.s = Array.isArray(sc) ? sc : [sc];
+  if (e.emoticon) rec.m = Array.isArray(e.emoticon) ? e.emoticon : [e.emoticon];
   const v = versionByHex.get(e.hexcode);
   if (v != null) rec.v = v;
   const t = toneGlyphs(e);
@@ -141,5 +142,6 @@ writeFileSync(
 
 console.log(
   `✔ emoji-data: ${emojis.length} emoji, ${groups.length} groups, ` +
-    `${emojis.filter((e) => e.t).length} tone-enabled, Emoji ${emojiVersion}`
+    `${emojis.filter((e) => e.t).length} tone-enabled, ` +
+    `${emojis.filter((e) => e.m).length} with emoticons, Emoji ${emojiVersion}`
 );

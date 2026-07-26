@@ -193,4 +193,10 @@ export interface EmojiKeyboardProps {
   onActiveCategoryChange?: (category: CategoryTypes) => void;
   /** Default skin tone applied to tone-enabled emoji. Defaults to `'none'`. */
   defaultSkinTone?: SkinTone;
+  /**
+   * Hide emoji introduced after this Emoji spec version (e.g. `15`) so devices
+   * with an older system font never render the □ "tofu" box. Omit to show the
+   * full bundled set (Emoji 17.0). Analogous to emoji-mart's `emojiVersion`.
+   */
+  maxEmojiVersion?: number;
 }

@@ -11,6 +11,7 @@ export type { GridItem, GridModel, RenderEmoji, Section } from './internal-types
 export { toneIndex, applyTone, slugify, toEmojiType } from './skinTone';
 export { buildGrid } from './buildGrid';
 export { searchEmojis } from './search';
+export { filterByEmojiVersion } from './version';
 export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 
 // Hooks.
