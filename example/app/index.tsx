@@ -1,28 +1,22 @@
 import {
   EmojiKeyboard,
-  useEmojiKeyboardInset,
+  useEmojiKeyboardSwap,
   type EmojiType,
 } from '@softwhere-uz/react-native-emoji-keyboard';
 import { Link } from 'expo-router';
 import { useRef, useState } from 'react';
-import {
-  Keyboard,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+
+const BAR_HEIGHT = 60;
 
 export default function ComposerScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [text, setText] = useState('');
-  const [emojiOpen, setEmojiOpen] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  // Unified state: the emoji panel behaves like the keyboard for layout.
-  const { keyboardVisible, keyboardHeight } = useEmojiKeyboardInset(emojiOpen);
+  // Seamless keyboard <-> emoji swap. `inset` is held constant across the swap,
+  // so the composer never jumps.
+  const { emojiOpen, toggle, onInputFocus, close, inset } = useEmojiKeyboardSwap({ inputRef });
 
   const send = () => {
     const t = text.trim();
@@ -31,33 +25,18 @@ export default function ComposerScreen() {
     setText('');
   };
 
-  // Swap the OS keyboard for the emoji panel (and back) at the same height.
-  const toggleEmoji = () => {
-    if (emojiOpen) {
-      setEmojiOpen(false);
-      inputRef.current?.focus();
-    } else {
-      Keyboard.dismiss();
-      setEmojiOpen(true);
-    }
-  };
-
-  // The keyboard OVERLAYS the app (iOS always; Android too under the now-standard
-  // edge-to-edge, which doesn't resize the window), so lift the composer bar by
-  // the keyboard height to keep it — and the input — visible above the keyboard.
-  const barLift = keyboardVisible ? keyboardHeight : 0;
-
   return (
     <View style={styles.screen}>
       <ScrollView
         style={styles.messages}
-        contentContainerStyle={styles.messagesContent}
+        contentContainerStyle={[styles.messagesContent, { paddingBottom: inset + BAR_HEIGHT + 12 }]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {messages.length === 0 ? (
           <Text style={styles.hint}>
-            Type a message, then tap 😀 — the emoji picker replaces the keyboard at the same height,
-            seamlessly. Tap ⌨️ to swap back.
+            Type a message, then tap 😀 — the emoji picker replaces the keyboard at the same height
+            with no jump. Tap ⌨️ to swap back.
           </Text>
         ) : (
           messages.map((m, i) => (
@@ -71,10 +50,24 @@ export default function ComposerScreen() {
         </Link>
       </ScrollView>
 
-      {/* Composer bar — sits above the keyboard / emoji panel. */}
-      <View style={[styles.bar, { marginBottom: barLift }]}>
+      {/* Tap-outside-to-dismiss. The OS keyboard already closes on a background
+          tap (keyboardShouldPersistTaps="handled"), but the emoji panel is React
+          state, so while it's open we overlay the message area with a Pressable
+          that calls `close()` — matching the native "tap out to dismiss" feel. */}
+      {emojiOpen ? (
         <Pressable
-          onPress={toggleEmoji}
+          style={[styles.dismissOverlay, { bottom: inset + BAR_HEIGHT }]}
+          onPress={close}
+          accessibilityRole="button"
+          accessibilityLabel="Close emoji picker"
+        />
+      ) : null}
+
+      {/* Composer bar — pinned at a CONSTANT offset (inset) above whatever is at
+          the bottom (keyboard or emoji panel), so it never jumps during a swap. */}
+      <View style={[styles.barWrap, { bottom: inset }]}>
+        <Pressable
+          onPress={toggle}
           accessibilityRole="button"
           accessibilityLabel={emojiOpen ? 'Show keyboard' : 'Show emoji picker'}
           style={styles.iconBtn}
@@ -88,7 +81,7 @@ export default function ComposerScreen() {
           onChangeText={setText}
           placeholder="Message"
           placeholderTextColor="#9ca3af"
-          onFocus={() => setEmojiOpen(false)}
+          onFocus={onInputFocus}
           returnKeyType="send"
           onSubmitEditing={send}
         />
@@ -97,15 +90,18 @@ export default function ComposerScreen() {
         </Pressable>
       </View>
 
-      {/* Emoji panel occupies exactly the keyboard's space when open. */}
+      {/* Emoji panel fills the inset space at the very bottom. Same height source
+          (`defaultHeight="keyboard"`) as the inset, so the swap is exact. */}
       {emojiOpen ? (
-        <EmojiKeyboard
-          onEmojiSelected={(e: EmojiType) => setText((t) => t + e.emoji)}
-          defaultHeight="keyboard"
-          categoryPosition="top"
-          enableSearchBar
-          enableRecentlyUsed
-        />
+        <View style={styles.panelWrap}>
+          <EmojiKeyboard
+            onEmojiSelected={(e: EmojiType) => setText((t) => t + e.emoji)}
+            defaultHeight="keyboard"
+            categoryPosition="top"
+            enableSearchBar
+            enableRecentlyUsed
+          />
+        </View>
       ) : null}
     </View>
   );
@@ -127,7 +123,11 @@ const styles = StyleSheet.create({
   },
   bubbleText: { fontSize: 16, color: '#ffffff' },
   link: { fontSize: 15, color: '#2563eb', fontWeight: '600', marginTop: 8 },
-  bar: {
+  barWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    minHeight: BAR_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -137,6 +137,8 @@ const styles = StyleSheet.create({
     borderTopColor: '#e5e7eb',
     backgroundColor: '#ffffff',
   },
+  panelWrap: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  dismissOverlay: { position: 'absolute', top: 0, left: 0, right: 0 },
   iconBtn: { padding: 6 },
   icon: { fontSize: 24 },
   input: {

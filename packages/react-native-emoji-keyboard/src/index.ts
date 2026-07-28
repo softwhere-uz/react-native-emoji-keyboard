@@ -21,8 +21,12 @@ export type { EmojiModalProps } from './components/EmojiModal';
 
 // --- device keyboard-height helpers (seamless keyboard-avoidance) --------
 export { useKeyboardHeight } from './components/useKeyboardHeight';
-export { useKeyboardState, useEmojiKeyboardInset } from './components/useKeyboardState';
-export type { KeyboardState } from './components/useKeyboardState';
+export {
+  useKeyboardState,
+  useEmojiKeyboardInset,
+  useEmojiKeyboardSwap,
+} from './components/useKeyboardState';
+export type { KeyboardState, EmojiKeyboardSwap } from './components/useKeyboardState';
 
 // --- public types (incumbent-compatible) ---------------------------------
 export type {
