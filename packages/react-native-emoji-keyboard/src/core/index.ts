@@ -14,6 +14,15 @@ export { searchEmojis } from './search';
 export { filterByEmojiVersion } from './version';
 export { resolveReaction, DEFAULT_QUICK_REACTIONS } from './reactions';
 export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
+export {
+  nextGridFocus,
+  firstGridFocus,
+  lastGridFocus,
+  normalizeFocus,
+  emojiAtFocus,
+  isGridNavKey,
+} from './gridNavigation';
+export type { GridFocus, GridNavKey, GridNavModifiers } from './gridNavigation';
 
 // Hooks.
 export { useReveal } from './useReveal';
@@ -24,3 +33,5 @@ export { useMultiSelect } from './useMultiSelect';
 export { useSearch } from './useSearch';
 export { useEmojiData } from './useEmojiData';
 export { useCategorySync } from './useCategorySync';
+export { useGridNavigation } from './useGridNavigation';
+export type { UseGridNavigation } from './useGridNavigation';

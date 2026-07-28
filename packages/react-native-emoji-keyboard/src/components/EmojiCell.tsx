@@ -12,7 +12,7 @@
  * so the final short row still aligns to the grid columns.
  */
 import * as React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import type { DimensionValue, LayoutRectangle } from 'react-native';
 
 import type { RenderEmoji } from '../core';
@@ -30,6 +30,12 @@ export type EmojiCellProps = {
   widthPercent: DimensionValue;
   /** Whether this glyph is currently marked selected (multi-select mode). */
   selected?: boolean;
+  /**
+   * Whether this cell is the keyboard-focused one (§4 · roving tabindex). Draws
+   * a visible focus ring and, on web, imperatively focuses the DOM node so the
+   * browser scrolls it into view. Native touch behavior is unaffected.
+   */
+  focused?: boolean;
   /** Tapped. */
   onPress: (emoji: RenderEmoji) => void;
   /** Long-pressed (meaningful when the emoji is tone-enabled). */
@@ -43,12 +49,28 @@ function EmojiCellComponent({
   emojiSize,
   widthPercent,
   selected = false,
+  focused = false,
   onPress,
   onLongPress,
   onActivate,
 }: EmojiCellProps): React.ReactElement {
   const theme = useTheme();
   const containerRef = React.useRef<React.ComponentRef<typeof Pressable>>(null);
+
+  // §4: when this cell becomes keyboard-focused, move the browser's focus to it
+  // (web only) so the virtualized list scrolls it into view and screen readers
+  // announce it. A no-op on native, where focus is driven by touch/TalkBack.
+  React.useEffect(() => {
+    if (!focused || Platform.OS !== 'web') return;
+    const node = containerRef.current as unknown as { focus?: () => void } | null;
+    node?.focus?.();
+  }, [focused]);
+
+  // Roving tabindex on web: only the focused cell is in the tab order; the rest
+  // are reachable programmatically via arrow keys. Spread as loose props so we
+  // don't depend on react-native-web's extended prop typings.
+  const webFocusProps: Record<string, unknown> =
+    Platform.OS === 'web' ? { tabIndex: focused ? 0 : -1 } : {};
 
   const handlePress = React.useCallback(() => {
     onPress(emoji);
@@ -90,9 +112,13 @@ function EmojiCellComponent({
       accessibilityLabel={emoji.source.n}
       accessibilityState={{ selected }}
       accessibilityHint={toneEnabled ? 'Long press to choose a skin tone' : undefined}
+      {...webFocusProps}
       style={[
         styles.cell,
         { width: widthPercent, height: cellHeight },
+        // Reserve the ring width always (transparent) so focusing never shifts
+        // layout; the focused cell just colors its border.
+        focused ? { borderColor: theme.category.iconActive } : null,
         selected ? { backgroundColor: theme.emoji.selected } : null,
       ]}
     >
@@ -108,6 +134,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
+    // Always-present transparent ring so keyboard focus (§4) never shifts layout.
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   glyph: {
     textAlign: 'center',

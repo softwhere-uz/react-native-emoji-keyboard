@@ -13,13 +13,13 @@
  * never be left visibly empty.
  */
 import * as React from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, I18nManager, Platform, StyleSheet, View } from 'react-native';
 import type { ViewabilityConfig } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import type { FlashListRef } from '@shopify/flash-list';
 
 import type { GridItem, GridModel, RenderEmoji } from '../core';
-import { useReveal } from '../core';
+import { isGridNavKey, useGridNavigation, useReveal } from '../core';
 import type { CategoryTypes } from '../types';
 import { useTheme } from '../theme';
 import { CategoryHeader } from './CategoryHeader';
@@ -84,6 +84,62 @@ function EmojiGridComponent(
 
   const listRef = React.useRef<FlashListRef<GridItem>>(null);
 
+  // §4: headless keyboard-focus state. Driving the movement rules from the
+  // tested core means this component only forwards key events and scrolls the
+  // resolved cell into view. Web-primary (arrow keys); inert on native touch.
+  const { focus, move, focusFirst } = useGridNavigation(grid);
+
+  const scrollFocusIntoView = React.useCallback((itemIndex: number) => {
+    listRef.current
+      ?.scrollToIndex({ index: itemIndex, animated: true, viewPosition: 0.5 })
+      .catch(() => {
+        /* target not yet measured — the imperative cell focus still nudges it */
+      });
+  }, []);
+
+  // DOM key handler (react-native-web forwards `onKeyDown`). Enter/Space select
+  // the focused emoji; arrows/Home/End move focus. Under RTL the horizontal
+  // arrows are swapped so left/right track visual direction.
+  const handleKeyDown = React.useCallback(
+    (event: { key: string; ctrlKey?: boolean; metaKey?: boolean; preventDefault?: () => void }) => {
+      const key = event.key;
+      if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+        const item = grid.items[focus?.item ?? -1];
+        const active = item && item.type === 'row' ? item.emojis[focus?.col ?? -1] : undefined;
+        if (active) {
+          event.preventDefault?.();
+          onSelect(active);
+        }
+        return;
+      }
+
+      let navKey = key;
+      if (I18nManager.isRTL) {
+        if (key === 'ArrowLeft') navKey = 'ArrowRight';
+        else if (key === 'ArrowRight') navKey = 'ArrowLeft';
+      }
+      if (!isGridNavKey(navKey)) return;
+      event.preventDefault?.();
+
+      // First key press just lands focus on the top-left cell.
+      if (!focus) {
+        const first = focusFirst();
+        if (first) scrollFocusIntoView(first.item);
+        return;
+      }
+      const next = move(navKey, { ctrl: event.ctrlKey, meta: event.metaKey });
+      if (next) scrollFocusIntoView(next.item);
+    },
+    [grid.items, focus, move, focusFirst, onSelect, scrollFocusIntoView]
+  );
+
+  // Web-only container props: make the grid a focusable `grid` landmark that
+  // receives key events. Spread loosely to avoid react-native-web prop typings.
+  const webGridProps: Record<string, unknown> =
+    Platform.OS === 'web'
+      ? { onKeyDown: handleKeyDown, tabIndex: 0, role: 'grid', 'aria-label': 'Emoji grid' }
+      : {};
+
   // §4 guard: reveal via rAF once data is present, then STAY revealed. It is
   // deliberately NOT keyed on the active category — that value is fed back from
   // scrolling, and re-hiding on it would blank the grid mid-scroll (the very
@@ -103,19 +159,21 @@ function EmojiGridComponent(
   const widthPercent = `${100 / columns}%` as const;
 
   const renderItem = React.useCallback(
-    ({ item }: { item: GridItem }) => {
+    ({ item, index }: { item: GridItem; index: number }) => {
       if (item.type === 'header') {
         return <CategoryHeader label={item.label} />;
       }
+      const focusedCol = focus?.item === index ? focus.col : -1;
       return (
         <View style={styles.row}>
-          {item.emojis.map((emoji) => (
+          {item.emojis.map((emoji, col) => (
             <EmojiCell
               key={emoji.glyph}
               emoji={emoji}
               emojiSize={emojiSize}
               widthPercent={widthPercent}
               selected={selectedEmojis?.has(emoji.glyph)}
+              focused={col === focusedCol}
               onPress={onSelect}
               onLongPress={onLongPress}
               onActivate={onActivate}
@@ -124,7 +182,7 @@ function EmojiGridComponent(
         </View>
       );
     },
-    [emojiSize, widthPercent, selectedEmojis, onSelect, onLongPress, onActivate]
+    [emojiSize, widthPercent, selectedEmojis, focus, onSelect, onLongPress, onActivate]
   );
 
   const keyExtractor = React.useCallback((item: GridItem) => item.key, []);
@@ -167,7 +225,10 @@ function EmojiGridComponent(
   );
 
   return (
-    <Animated.View style={[styles.fill, { opacity, backgroundColor: theme.container }]}>
+    <Animated.View
+      {...webGridProps}
+      style={[styles.fill, { opacity, backgroundColor: theme.container }]}
+    >
       <FlashList<GridItem>
         ref={listRef}
         data={grid.items}

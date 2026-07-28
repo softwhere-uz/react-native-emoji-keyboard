@@ -67,6 +67,13 @@ export {
   DEFAULT_QUICK_REACTIONS,
   readAdapter,
   writeAdapter,
+  // §4 keyboard grid-navigation (pure movement model)
+  nextGridFocus,
+  firstGridFocus,
+  lastGridFocus,
+  normalizeFocus,
+  emojiAtFocus,
+  isGridNavKey,
   // hooks
   useReveal,
   useRecents,
@@ -76,6 +83,16 @@ export {
   useSearch,
   useEmojiData,
   useCategorySync,
+  useGridNavigation,
 } from './core';
 
-export type { GridItem, GridModel, RenderEmoji, Section } from './core';
+export type {
+  GridItem,
+  GridModel,
+  RenderEmoji,
+  Section,
+  GridFocus,
+  GridNavKey,
+  GridNavModifiers,
+  UseGridNavigation,
+} from './core';
