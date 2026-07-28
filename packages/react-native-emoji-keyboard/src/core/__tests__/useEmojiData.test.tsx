@@ -6,6 +6,7 @@
 import * as React from 'react';
 import { act, render } from '@testing-library/react';
 import type { EmojisByCategory } from '../../types';
+import type { CompactEmoji } from '../../data';
 import { useEmojiData } from '../useEmojiData';
 import type { GridModel, Section } from '../internal-types';
 
@@ -96,6 +97,30 @@ describe('useEmojiData — favorites section', () => {
       );
     });
     expect(api.sections.some((s) => s.category === 'favorites')).toBe(false);
+  });
+});
+
+describe('useEmojiData — custom emojiSource (§8 async/lazy data)', () => {
+  it('categorizes an alternate bundle instead of the built-in set', async () => {
+    // A tiny two-category source; the grid must contain ONLY these emoji.
+    const source: CompactEmoji[] = [
+      { e: '🙂', n: 'slight smile', g: 0, o: 0 },
+      { e: '🎉', n: 'party popper', g: 6, o: 1 },
+    ];
+    await act(async () => {
+      render(<Probe {...base} emojiSource={source} />);
+    });
+    const glyphs = gridEmoji(api.grid).map((r) => r.source.e);
+    expect(glyphs.sort()).toEqual(['🎉', '🙂']);
+    expect(api.sections.map((s) => s.category).sort()).toEqual(['activities', 'smileys_emotion']);
+  });
+
+  it('yields no sections for an empty source (mid-load state)', async () => {
+    await act(async () => {
+      render(<Probe {...base} emojiSource={[]} />);
+    });
+    expect(api.sections).toHaveLength(0);
+    expect(gridEmoji(api.grid)).toHaveLength(0);
   });
 });
 

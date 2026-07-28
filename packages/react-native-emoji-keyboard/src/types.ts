@@ -10,6 +10,7 @@
 import type * as React from 'react';
 import type { TextStyle, ViewStyle } from 'react-native';
 import type { CompactEmoji } from './data';
+import type { EmojiSource } from './core/useAsyncEmojiData';
 
 // --- categories ----------------------------------------------------------
 
@@ -236,4 +237,11 @@ export interface EmojiKeyboardProps {
    * `storage` (in-session only without it). Defaults to `false`.
    */
   enableFavorites?: boolean;
+  /**
+   * Pluggable emoji data source (§8 · data delivery). Omit to use the bundled
+   * Emoji 17.0 set. Provide a `CompactEmoji[]` (e.g. a smaller initial slice) or
+   * a function returning a list or a `Promise` of one to lazy-load/fetch it —
+   * while a Promise is in flight the grid stays empty. Memoize a function source.
+   */
+  emojiSource?: EmojiSource;
 }

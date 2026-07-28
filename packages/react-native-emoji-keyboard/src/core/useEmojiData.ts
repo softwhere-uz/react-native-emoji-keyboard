@@ -20,12 +20,15 @@ import { filterByEmojiVersion } from './version';
 import type { GridModel, Section } from './internal-types';
 
 /**
- * Module-level: group the bundle by picker category once. `emojis` is already
- * sorted by (group, order), so per-category arrays inherit canonical order.
+ * Group a flat emoji list by picker category, preserving each list's order.
+ * Assumes the input is already sorted by (group, order) — as both the bundle
+ * and Emojibase output are — so per-category arrays inherit canonical order.
  */
-const EMOJIS_BY_CATEGORY: Partial<Record<CategoryTypes, CompactEmoji[]>> = (() => {
+function groupByCategory(
+  list: readonly CompactEmoji[]
+): Partial<Record<CategoryTypes, CompactEmoji[]>> {
   const map: Partial<Record<CategoryTypes, CompactEmoji[]>> = {};
-  for (const e of ALL_EMOJIS) {
+  for (const e of list) {
     const category = GROUP_ID_TO_CATEGORY[e.g];
     if (!category) continue;
     let bucket = map[category];
@@ -36,7 +39,11 @@ const EMOJIS_BY_CATEGORY: Partial<Record<CategoryTypes, CompactEmoji[]>> = (() =
     bucket.push(e);
   }
   return map;
-})();
+}
+
+/** The bundled set grouped once at module load — the default (no `emojiSource`). */
+const EMOJIS_BY_CATEGORY: Partial<Record<CategoryTypes, CompactEmoji[]>> =
+  groupByCategory(ALL_EMOJIS);
 
 /** Adapt a persisted/consumer `EmojiType` into a `CompactEmoji` for the grid. */
 function emojiTypeToCompact(e: EmojiType): CompactEmoji {
@@ -79,6 +86,7 @@ function labelFor(
 function buildDefaultSections(opts: {
   categoryOrder: CategoryTypes[];
   disabled: Set<CategoryTypes>;
+  byCategory: Partial<Record<CategoryTypes, CompactEmoji[]>>;
   enableFavorites: boolean;
   favorites: EmojiType[];
   enableRecentlyUsed: boolean;
@@ -86,7 +94,7 @@ function buildDefaultSections(opts: {
   translation: Partial<Record<CategoryTypes, string>> | undefined;
   override: EmojisByCategory[] | undefined;
 }): Section[] {
-  const { categoryOrder, disabled, enableFavorites, favorites, enableRecentlyUsed, recents, translation, override } = opts;
+  const { categoryOrder, disabled, byCategory, enableFavorites, favorites, enableRecentlyUsed, recents, translation, override } = opts;
 
   // A consumer-provided override fully replaces the bundle-derived categories.
   const overrideMap = override
@@ -123,7 +131,7 @@ function buildDefaultSections(opts: {
       const overridden = overrideMap.get(category);
       emojis = overridden ? overridden.map(jsonEmojiToCompact) : undefined;
     } else {
-      emojis = EMOJIS_BY_CATEGORY[category];
+      emojis = byCategory[category];
     }
 
     if (!emojis || emojis.length === 0) continue;
@@ -154,6 +162,12 @@ export function useEmojiData(opts: {
   maxEmojiVersion?: number;
   /** Keep only emoji for which this returns true (e.g. hide flags). Memoize it. */
   shouldInclude?: (emoji: CompactEmoji) => boolean;
+  /**
+   * Alternate emoji bundle to categorize (§8 · async/lazy data). Omit to use the
+   * built-in Emoji 17.0 set (grouped once at module load). Memoize it — a new
+   * array identity each render re-groups the whole bundle.
+   */
+  emojiSource?: readonly CompactEmoji[];
 }): { grid: GridModel; sections: Section[] } {
   const {
     categoryOrder,
@@ -170,7 +184,15 @@ export function useEmojiData(opts: {
     emojisByCategoryOverride,
     maxEmojiVersion,
     shouldInclude,
+    emojiSource,
   } = opts;
+
+  // Group the active bundle by category. The default set is pre-grouped at
+  // module load; a custom source is grouped here (memoized on its identity).
+  const byCategory = React.useMemo(
+    () => (emojiSource ? groupByCategory(emojiSource) : EMOJIS_BY_CATEGORY),
+    [emojiSource]
+  );
 
   const sections = React.useMemo<Section[]>(() => {
     // Search mode: a single virtual "search" section of the results. A non-null
@@ -200,6 +222,7 @@ export function useEmojiData(opts: {
     const base = buildDefaultSections({
       categoryOrder: order,
       disabled,
+      byCategory,
       enableFavorites,
       favorites: favorites ?? [],
       enableRecentlyUsed,
@@ -220,6 +243,7 @@ export function useEmojiData(opts: {
   }, [
     categoryOrder,
     disabledCategories,
+    byCategory,
     enableFavorites,
     favorites,
     enableRecentlyUsed,

@@ -35,3 +35,17 @@ export { useEmojiData } from './useEmojiData';
 export { useCategorySync } from './useCategorySync';
 export { useGridNavigation } from './useGridNavigation';
 export type { UseGridNavigation } from './useGridNavigation';
+export { useAsyncEmojiData } from './useAsyncEmojiData';
+export type { EmojiSource, AsyncEmojiData } from './useAsyncEmojiData';
+export {
+  useEmojiPickerValue,
+  useEmojiPickerContext,
+  useActiveEmoji,
+  usePickerSkinTone,
+  EmojiPickerStateProvider,
+} from './emojiPickerContext';
+export type {
+  EmojiPickerStateOptions,
+  EmojiPickerContextValue,
+  ActiveEmoji,
+} from './emojiPickerContext';

@@ -19,6 +19,36 @@ export type { ReactionStripProps } from './components/ReactionStrip';
 export { EmojiModal } from './components/EmojiModal';
 export type { EmojiModalProps } from './components/EmojiModal';
 
+// --- composable headless primitives (§5 · frimousse parity) --------------
+export {
+  EmojiPicker,
+  EmojiPickerRoot,
+  EmojiPickerSearch,
+  EmojiPickerViewport,
+  EmojiPickerList,
+  EmojiPickerEmpty,
+  EmojiPickerLoading,
+  EmojiPickerSkinToneSelector,
+  useActiveEmoji,
+  usePickerSkinTone,
+} from './components/EmojiPicker';
+export type {
+  EmojiPickerRootProps,
+  EmojiPickerSearchProps,
+  EmojiPickerSearchRenderProps,
+  EmojiPickerViewportProps,
+  EmojiPickerListProps,
+  EmojiPickerListComponents,
+  EmojiPickerCategoryHeaderProps,
+  EmojiPickerRowProps,
+  EmojiPickerEmojiProps,
+  EmojiPickerEmptyProps,
+  EmojiPickerLoadingProps,
+  ActiveEmoji,
+  EmojiPickerStateOptions,
+  EmojiPickerContextValue,
+} from './components/EmojiPicker';
+
 // --- device keyboard-height helpers (seamless keyboard-avoidance) --------
 export { useKeyboardHeight } from './components/useKeyboardHeight';
 export {
@@ -84,6 +114,8 @@ export {
   useEmojiData,
   useCategorySync,
   useGridNavigation,
+  // §8 async / lazy data loading
+  useAsyncEmojiData,
 } from './core';
 
 export type {
@@ -95,4 +127,6 @@ export type {
   GridNavKey,
   GridNavModifiers,
   UseGridNavigation,
+  EmojiSource,
+  AsyncEmojiData,
 } from './core';

@@ -19,6 +19,7 @@ import type { DimensionValue, LayoutChangeEvent, ViewStyle } from 'react-native'
 import {
   applyTone,
   toEmojiType,
+  useAsyncEmojiData,
   useCategorySync,
   useEmojiData,
   useFavorites,
@@ -29,7 +30,7 @@ import {
 } from '../core';
 import type { RenderEmoji } from '../core';
 import { DEFAULT_EMOJI_SIZE } from '../constants';
-import { emojis as ALL_EMOJIS } from '../data';
+import type { CompactEmoji } from '../data';
 import type { CategoryTypes, EmojiKeyboardProps, SkinTone } from '../types';
 import { darkTheme, defaultTheme, ThemeProvider, useTheme } from '../theme';
 import { CategoryBar } from './CategoryBar';
@@ -120,6 +121,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     categoryIcons,
     enablePreview = false,
     enableFavorites = false,
+    emojiSource,
   } = props;
 
   const theme = useTheme();
@@ -149,7 +151,9 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
   });
   const { recents, addRecent } = useRecents({ storage, enabled: enableRecentlyUsed });
   const { favorites, toggleFavorite, isFavorite } = useFavorites({ storage, enabled: enableFavorites });
-  const { query, setQuery, results } = useSearch(ALL_EMOJIS);
+  // §8: resolve the (possibly async / lazy) emoji bundle; search over it.
+  const { emojis: sourceEmojis } = useAsyncEmojiData(emojiSource);
+  const { query, setQuery, results } = useSearch(sourceEmojis as CompactEmoji[]);
   const searching = enableSearchBar && query.trim().length > 0;
 
   const { grid, sections } = useEmojiData({
@@ -167,6 +171,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     emojisByCategoryOverride: emojisByCategory,
     maxEmojiVersion,
     shouldInclude,
+    emojiSource: sourceEmojis,
   });
 
   // Categories present in the grid, in scroll order (drives the tab strip).
