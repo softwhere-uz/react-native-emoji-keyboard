@@ -76,7 +76,7 @@ export function SkinToneRow({ skinTone, onSelect }: SkinToneRowProps): React.Rea
 // --- (b) per-emoji popover ----------------------------------------------
 
 export type SkinTonePopoverProps = {
-  /** The tone-enabled emoji whose variants to show. */
+  /** The emoji this long-press popover acts on. */
   emoji: RenderEmoji;
   /** The long-pressed cell's window rect (drives positioning). */
   anchor: EmojiCellLayout | null;
@@ -86,12 +86,19 @@ export type SkinTonePopoverProps = {
   onSelectTone: (emoji: RenderEmoji, tone: SkinTone) => void;
   /** Fired when the popover should close without a selection. */
   onDismiss: () => void;
+  /** Show the five tone variants. Off for emoji without tone support. Defaults to `true`. */
+  showTones?: boolean;
+  /** When set, renders a ⭐ Favorite/Unfavorite toggle at the start of the row. */
+  onToggleFavorite?: () => void;
+  /** Current favorite state of this emoji (drives the ★/☆ glyph + a11y state). */
+  isFavorite?: boolean;
 };
 
 /**
- * Popover listing an emoji's tone variants. Uses `Animated` opacity + scale for
- * entrance. Anchored above the long-pressed cell when a rect is provided, else
- * centered inline.
+ * Long-press action popover for an emoji. Optionally offers a ⭐ Favorite
+ * toggle and/or the emoji's five skin-tone variants. Uses `Animated` opacity +
+ * scale for entrance. Anchored above the long-pressed cell when a rect is
+ * provided, else centered inline.
  */
 export function SkinTonePopover({
   emoji,
@@ -99,6 +106,9 @@ export function SkinTonePopover({
   emojiSize,
   onSelectTone,
   onDismiss,
+  showTones = true,
+  onToggleFavorite,
+  isFavorite = false,
 }: SkinTonePopoverProps): React.ReactElement {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
@@ -120,8 +130,11 @@ export function SkinTonePopover({
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] });
 
   // Only the five toned variants (skip the `none` base) are offered here.
-  const tones = SKIN_TONES.filter((t): t is Exclude<SkinTone, 'none'> => t !== 'none');
-  const rowWidth = tones.length * (emojiSize + 20) + 16;
+  const tones = showTones
+    ? SKIN_TONES.filter((t): t is Exclude<SkinTone, 'none'> => t !== 'none')
+    : [];
+  const slots = tones.length + (onToggleFavorite ? 1 : 0);
+  const rowWidth = slots * (emojiSize + 20) + 16;
 
   // Best-effort positioning: center the popover over the anchor, clamped to a
   // non-negative origin. Falls back to a centered inline row when no anchor.
@@ -137,7 +150,7 @@ export function SkinTonePopover({
     <>
       {/* Tap-catcher backdrop to dismiss. */}
       <Pressable
-        accessibilityLabel="Dismiss skin tone picker"
+        accessibilityLabel="Dismiss emoji actions"
         onPress={onDismiss}
         style={popStyles.backdrop}
       />
@@ -148,6 +161,25 @@ export function SkinTonePopover({
           positioned ?? popStyles.centered,
         ]}
       >
+        {onToggleFavorite ? (
+          <Pressable
+            onPress={onToggleFavorite}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? `Unfavorite ${emoji.source.n}` : `Favorite ${emoji.source.n}`}
+            accessibilityState={{ selected: isFavorite }}
+            style={[popStyles.variant, tones.length > 0 ? popStyles.favoriteDivider : null]}
+          >
+            <Text
+              allowFontScaling={false}
+              style={[
+                popStyles.variantGlyph,
+                { fontSize: emojiSize, lineHeight: Math.round(emojiSize * 1.25) },
+              ]}
+            >
+              {isFavorite ? '★' : '☆'}
+            </Text>
+          </Pressable>
+        ) : null}
         {tones.map((tone) => (
           <Pressable
             key={tone}
@@ -218,6 +250,12 @@ const popStyles = StyleSheet.create({
   variant: {
     paddingHorizontal: 6,
     paddingVertical: 4,
+  },
+  favoriteDivider: {
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: 'rgba(128,128,128,0.4)',
+    marginRight: 4,
+    paddingRight: 10,
   },
   variantGlyph: {
     textAlign: 'center',

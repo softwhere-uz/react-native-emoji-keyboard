@@ -70,6 +70,7 @@ export {
   // hooks
   useReveal,
   useRecents,
+  useFavorites,
   useSkinTone,
   useMultiSelect,
   useSearch,

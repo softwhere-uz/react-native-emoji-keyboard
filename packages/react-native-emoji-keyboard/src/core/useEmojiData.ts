@@ -79,12 +79,14 @@ function labelFor(
 function buildDefaultSections(opts: {
   categoryOrder: CategoryTypes[];
   disabled: Set<CategoryTypes>;
+  enableFavorites: boolean;
+  favorites: EmojiType[];
   enableRecentlyUsed: boolean;
   recents: EmojiType[];
   translation: Partial<Record<CategoryTypes, string>> | undefined;
   override: EmojisByCategory[] | undefined;
 }): Section[] {
-  const { categoryOrder, disabled, enableRecentlyUsed, recents, translation, override } = opts;
+  const { categoryOrder, disabled, enableFavorites, favorites, enableRecentlyUsed, recents, translation, override } = opts;
 
   // A consumer-provided override fully replaces the bundle-derived categories.
   const overrideMap = override
@@ -92,6 +94,16 @@ function buildDefaultSections(opts: {
     : undefined;
 
   const sections: Section[] = [];
+
+  // Favorites lead the grid (user-curated), then recently-used.
+  const showFavorites = enableFavorites && favorites.length > 0 && !disabled.has('favorites');
+  if (showFavorites) {
+    sections.push({
+      category: 'favorites',
+      label: labelFor('favorites', translation),
+      emojis: favorites.map(emojiTypeToCompact),
+    });
+  }
 
   const showRecents = enableRecentlyUsed && recents.length > 0 && !disabled.has('recently_used');
   if (showRecents) {
@@ -103,7 +115,7 @@ function buildDefaultSections(opts: {
   }
 
   for (const category of categoryOrder) {
-    if (category === 'recently_used' || category === 'search') continue;
+    if (category === 'favorites' || category === 'recently_used' || category === 'search') continue;
     if (disabled.has(category)) continue;
 
     let emojis: CompactEmoji[] | undefined;
@@ -128,6 +140,8 @@ function buildDefaultSections(opts: {
 export function useEmojiData(opts: {
   categoryOrder?: CategoryTypes[];
   disabledCategories?: CategoryTypes[];
+  enableFavorites?: boolean;
+  favorites?: EmojiType[];
   enableRecentlyUsed?: boolean;
   recents?: EmojiType[];
   skinTone: SkinTone;
@@ -144,6 +158,8 @@ export function useEmojiData(opts: {
   const {
     categoryOrder,
     disabledCategories,
+    enableFavorites = false,
+    favorites,
     enableRecentlyUsed = false,
     recents,
     skinTone,
@@ -184,6 +200,8 @@ export function useEmojiData(opts: {
     const base = buildDefaultSections({
       categoryOrder: order,
       disabled,
+      enableFavorites,
+      favorites: favorites ?? [],
       enableRecentlyUsed,
       recents: recents ?? [],
       translation,
@@ -202,6 +220,8 @@ export function useEmojiData(opts: {
   }, [
     categoryOrder,
     disabledCategories,
+    enableFavorites,
+    favorites,
     enableRecentlyUsed,
     recents,
     searchResults,

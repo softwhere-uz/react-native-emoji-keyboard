@@ -19,6 +19,7 @@ import { useStyles, useTheme } from '../theme';
  * emoji (no icon library dependency).
  */
 const CATEGORY_ICON: Readonly<Record<CategoryTypes, string>> = {
+  favorites: '⭐',
   recently_used: '🕒',
   smileys_emotion: '😀',
   people_body: '👋',

@@ -25,6 +25,7 @@ export const GROUP_ID_TO_CATEGORY: Readonly<Record<number, CategoryTypes>> = {
  * `enableRecentlyUsed`); `search` is a mode, not a scroll target, so it is absent.
  */
 export const DEFAULT_CATEGORY_ORDER: readonly CategoryTypes[] = [
+  'favorites',
   'recently_used',
   'smileys_emotion',
   'people_body',
@@ -39,6 +40,7 @@ export const DEFAULT_CATEGORY_ORDER: readonly CategoryTypes[] = [
 
 /** Fallback English labels for each category (used when no `translation` is given). */
 export const DEFAULT_CATEGORY_LABELS: Readonly<Record<CategoryTypes, string>> = {
+  favorites: 'Favorites',
   recently_used: 'Recently used',
   smileys_emotion: 'Smileys & Emotion',
   people_body: 'People & Body',
@@ -68,6 +70,7 @@ export const SKIN_TONES: readonly SkinTone[] = [
 /** Storage keys used by the default persistence hooks. */
 export const STORAGE_KEYS = {
   recents: '@softwhere-uz/emoji-keyboard:recents',
+  favorites: '@softwhere-uz/emoji-keyboard:favorites',
   skinTone: '@softwhere-uz/emoji-keyboard:skin-tone',
   skinToneMemory: '@softwhere-uz/emoji-keyboard:skin-tone-memory',
 } as const;

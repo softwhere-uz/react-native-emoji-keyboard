@@ -21,6 +21,7 @@ import {
   toEmojiType,
   useCategorySync,
   useEmojiData,
+  useFavorites,
   useMultiSelect,
   useRecents,
   useSearch,
@@ -118,6 +119,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     shouldInclude,
     categoryIcons,
     enablePreview = false,
+    enableFavorites = false,
   } = props;
 
   const theme = useTheme();
@@ -146,12 +148,15 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     defaultTone: defaultSkinTone,
   });
   const { recents, addRecent } = useRecents({ storage, enabled: enableRecentlyUsed });
+  const { favorites, toggleFavorite, isFavorite } = useFavorites({ storage, enabled: enableFavorites });
   const { query, setQuery, results } = useSearch(ALL_EMOJIS);
   const searching = enableSearchBar && query.trim().length > 0;
 
   const { grid, sections } = useEmojiData({
     categoryOrder: categoryOrder ? [...categoryOrder] : undefined,
     disabledCategories,
+    enableFavorites,
+    favorites,
     enableRecentlyUsed,
     recents,
     skinTone,
@@ -216,11 +221,25 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     anchor: EmojiCellLayout | null;
   } | null>(null);
 
-  const handleLongPress = React.useCallback((emoji: RenderEmoji, layout: EmojiCellLayout) => {
-    const toneEnabled = Array.isArray(emoji.source.t) && emoji.source.t.length >= 5;
-    if (!toneEnabled) return;
-    setPopover({ emoji, anchor: layout });
-  }, []);
+  const handleLongPress = React.useCallback(
+    (emoji: RenderEmoji, layout: EmojiCellLayout) => {
+      const toneEnabled = Array.isArray(emoji.source.t) && emoji.source.t.length >= 5;
+      // Open the popover if it has any action to offer: tone variants and/or the
+      // favorite toggle. Without either, long-press is a no-op.
+      if (!toneEnabled && !enableFavorites) return;
+      setPopover({ emoji, anchor: layout });
+    },
+    [enableFavorites]
+  );
+
+  // Toggle the long-pressed emoji's favorite state, then close the popover.
+  const handleToggleFavorite = React.useCallback(
+    (emoji: RenderEmoji) => {
+      toggleFavorite(toEmojiType(emoji.source, emoji.glyph));
+      setPopover(null);
+    },
+    [toggleFavorite]
+  );
 
   const handleTonePicked = React.useCallback(
     (emoji: RenderEmoji, tone: SkinTone) => {
@@ -334,6 +353,9 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
           emoji={popover.emoji}
           anchor={popover.anchor}
           emojiSize={emojiSize + 6}
+          showTones={Array.isArray(popover.emoji.source.t) && popover.emoji.source.t.length >= 5}
+          onToggleFavorite={enableFavorites ? () => handleToggleFavorite(popover.emoji) : undefined}
+          isFavorite={enableFavorites ? isFavorite(popover.emoji.glyph) : false}
           onSelectTone={handleTonePicked}
           onDismiss={() => setPopover(null)}
         />

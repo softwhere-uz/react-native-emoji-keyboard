@@ -18,6 +18,7 @@ export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 // Hooks.
 export { useReveal } from './useReveal';
 export { useRecents } from './useRecents';
+export { useFavorites } from './useFavorites';
 export { useSkinTone } from './useSkinTone';
 export { useMultiSelect } from './useMultiSelect';
 export { useSearch } from './useSearch';

@@ -24,6 +24,7 @@ export type CategoryTypes =
   | 'objects'
   | 'symbols'
   | 'flags'
+  | 'favorites'
   | 'recently_used'
   | 'search';
 
@@ -229,4 +230,10 @@ export interface EmojiKeyboardProps {
    * finger/pointer, below the grid. Defaults to `false`.
    */
   enablePreview?: boolean;
+  /**
+   * Enable user-curated favorites: a leading "Favorites" section plus a
+   * ⭐ Favorite/Unfavorite action in the long-press popover. Persisted via
+   * `storage` (in-session only without it). Defaults to `false`.
+   */
+  enableFavorites?: boolean;
 }

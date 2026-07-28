@@ -100,6 +100,7 @@ export default function ComposerScreen() {
             categoryPosition="top"
             enableSearchBar
             enableRecentlyUsed
+            enableFavorites
           />
         </View>
       ) : null}

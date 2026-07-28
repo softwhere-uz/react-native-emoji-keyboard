@@ -53,6 +53,52 @@ describe('useEmojiData — tofu-gating', () => {
   });
 });
 
+describe('useEmojiData — favorites section', () => {
+  const fav = (glyph: string, name: string) => ({
+    emoji: glyph,
+    name,
+    slug: name.replace(/\s+/g, '_'),
+    unicode_version: '1.0',
+    toneEnabled: false,
+  });
+
+  it('leads the grid with a favorites section when enabled and non-empty', async () => {
+    await act(async () => {
+      render(<Probe {...base} enableFavorites favorites={[fav('😀', 'grinning face')]} />);
+    });
+    expect(api.sections[0]?.category).toBe('favorites');
+    expect(api.sections[0]?.emojis.map((e) => e.e)).toEqual(['😀']);
+  });
+
+  it('omits the favorites section when empty', async () => {
+    await act(async () => {
+      render(<Probe {...base} enableFavorites favorites={[]} />);
+    });
+    expect(api.sections.some((s) => s.category === 'favorites')).toBe(false);
+  });
+
+  it('omits the favorites section when the flag is off (even with favorites present)', async () => {
+    await act(async () => {
+      render(<Probe {...base} favorites={[fav('😀', 'grinning face')]} />);
+    });
+    expect(api.sections.some((s) => s.category === 'favorites')).toBe(false);
+  });
+
+  it('drops the favorites section when disabled via disabledCategories', async () => {
+    await act(async () => {
+      render(
+        <Probe
+          {...base}
+          enableFavorites
+          favorites={[fav('😀', 'grinning face')]}
+          disabledCategories={['favorites']}
+        />
+      );
+    });
+    expect(api.sections.some((s) => s.category === 'favorites')).toBe(false);
+  });
+});
+
 describe('useEmojiData — shouldInclude filter', () => {
   it('hides emoji the predicate rejects (flags, group 9) and drops the emptied category', async () => {
     await act(async () => {
