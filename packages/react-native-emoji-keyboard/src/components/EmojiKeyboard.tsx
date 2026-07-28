@@ -39,6 +39,7 @@ import { SearchBar } from './SearchBar';
 import { SkinTonePopover, SkinToneRow } from './SkinToneSelector';
 import { EmojiPreview } from './EmojiPreview';
 import { useReducedMotion } from './useReducedMotion';
+import { useKeyboardHeight } from './useKeyboardHeight';
 
 /**
  * Optional `react-native-safe-area-context` — resolved once at module load so
@@ -71,6 +72,20 @@ function toDimension(value: number | string | undefined, fallback: DimensionValu
     if (Number.isFinite(asNumber)) return asNumber;
   }
   return fallback;
+}
+
+/**
+ * Resolve the keyboard's own height. The special value `"keyboard"` sizes the
+ * panel to the tracked device software-keyboard height (a concrete pixel value,
+ * so the grid always gets real space — unlike a percentage inside a collapsing
+ * flex parent). Anything else goes through {@link toDimension}.
+ */
+function resolveHeight(
+  value: number | string | undefined,
+  keyboardHeight: number
+): DimensionValue {
+  if (value === 'keyboard') return keyboardHeight;
+  return toDimension(value, '40%');
 }
 
 /** The inner keyboard body (assumes a `ThemeProvider` above it). */
@@ -108,6 +123,8 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  // Tracked device software-keyboard height, for `defaultHeight="keyboard"`.
+  const keyboardHeight = useKeyboardHeight();
 
   // --- measured width → column count -------------------------------------
   const emojiSize = emojiSizeProp ?? DEFAULT_EMOJI_SIZE;
@@ -229,10 +246,10 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
   const [expanded, setExpanded] = React.useState(false);
   const height = React.useMemo<DimensionValue>(() => {
     if (expandable && expanded && expandedHeight !== undefined) {
-      return toDimension(expandedHeight, toDimension(defaultHeight, '40%'));
+      return toDimension(expandedHeight, resolveHeight(defaultHeight, keyboardHeight));
     }
-    return toDimension(defaultHeight, '40%');
-  }, [expandable, expanded, expandedHeight, defaultHeight]);
+    return resolveHeight(defaultHeight, keyboardHeight);
+  }, [expandable, expanded, expandedHeight, defaultHeight, keyboardHeight]);
 
   const toggleExpanded = React.useCallback(() => {
     // Skip the height animation when the user prefers reduced motion.

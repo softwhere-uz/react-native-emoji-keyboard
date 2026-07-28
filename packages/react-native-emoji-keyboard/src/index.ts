@@ -19,6 +19,11 @@ export type { ReactionStripProps } from './components/ReactionStrip';
 export { EmojiModal } from './components/EmojiModal';
 export type { EmojiModalProps } from './components/EmojiModal';
 
+// --- device keyboard-height helpers (seamless keyboard-avoidance) --------
+export { useKeyboardHeight } from './components/useKeyboardHeight';
+export { useKeyboardState, useEmojiKeyboardInset } from './components/useKeyboardState';
+export type { KeyboardState } from './components/useKeyboardState';
+
 // --- public types (incumbent-compatible) ---------------------------------
 export type {
   EmojiType,

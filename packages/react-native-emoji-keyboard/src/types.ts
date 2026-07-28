@@ -162,6 +162,13 @@ export interface EmojiKeyboardProps {
   // ---- incumbent-compatible props (§3 of handover) ----
   emojiSize?: number;
   hideHeader?: boolean;
+  /**
+   * Panel height: a number (px), a percent string (`"40%"`), or the special
+   * value `"keyboard"` to match the device's software-keyboard height (like a
+   * chat app swapping the OS keyboard for the emoji panel). `"keyboard"` is a
+   * concrete pixel height, so the grid always gets real space on Android even
+   * inside a `flex:1` parent. Defaults to `"40%"`.
+   */
   defaultHeight?: number | string;
   expandable?: boolean;
   expandedHeight?: number | string;

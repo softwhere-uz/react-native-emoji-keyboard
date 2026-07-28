@@ -1,9 +1,20 @@
-import { EmojiKeyboard, type EmojiType } from '@softwhere-uz/react-native-emoji-keyboard';
-import { useState } from 'react';
+import {
+  EmojiKeyboard,
+  EmojiModal,
+  ReactionStrip,
+  type EmojiType,
+} from '@softwhere-uz/react-native-emoji-keyboard';
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function ReactionsScreen() {
   const [reaction, setReaction] = useState<EmojiType | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const pick = useCallback((e: EmojiType) => {
+    setReaction(e);
+    setOpen(false);
+  }, []);
 
   return (
     <View style={styles.screen}>
@@ -13,32 +24,27 @@ export default function ReactionsScreen() {
         {reaction ? <Text style={styles.chosenName}>{reaction.name}</Text> : null}
       </View>
 
-      {/* Compact reaction picker inside a rounded, clipped box */}
-      <View style={styles.pickerBox}>
+      <Text style={styles.section}>ReactionStrip — tap a quick reaction, or ＋ for the full picker</Text>
+      <ReactionStrip onEmojiSelected={pick} onMorePress={() => setOpen(true)} />
+
+      {/* EmojiModal bottom-sheet with the full keyboard inside */}
+      <EmojiModal open={open} onClose={() => setOpen(false)}>
         <EmojiKeyboard
-          onEmojiSelected={setReaction}
-          defaultHeight={280}
-          hideHeader
+          onEmojiSelected={pick}
+          defaultHeight={520}
+          enableSearchBar
+          enablePreview
           categoryPosition="top"
           disableSafeArea
         />
-      </View>
+      </EmojiModal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    padding: 16,
-    gap: 24,
-  },
-  chosen: {
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 16,
-  },
+  screen: { flex: 1, backgroundColor: '#ffffff', padding: 16, gap: 20 },
+  chosen: { alignItems: 'center', gap: 6, paddingVertical: 16 },
   chosenLabel: {
     fontSize: 13,
     fontWeight: '600',
@@ -46,19 +52,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  chosenEmoji: {
-    fontSize: 56,
-    lineHeight: 64,
-  },
-  chosenName: {
-    fontSize: 14,
-    color: '#374151',
-  },
-  pickerBox: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
-  },
+  chosenEmoji: { fontSize: 56, lineHeight: 64 },
+  chosenName: { fontSize: 14, color: '#374151' },
+  section: { fontSize: 13, color: '#6b7280' },
 });
