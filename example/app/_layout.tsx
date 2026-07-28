@@ -9,6 +9,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: true }}>
         <Stack.Screen name="index" options={{ title: 'Composer' }} />
         <Stack.Screen name="reactions" options={{ title: 'Reactions' }} />
+        <Stack.Screen name="composable" options={{ title: 'Composable' }} />
       </Stack>
     </SafeAreaProvider>
   );

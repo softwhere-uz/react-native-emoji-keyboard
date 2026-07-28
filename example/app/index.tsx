@@ -48,6 +48,9 @@ export default function ComposerScreen() {
         <Link href="/reactions" style={styles.link}>
           Reactions + modal demo →
         </Link>
+        <Link href="/composable" style={styles.link}>
+          Composable EmojiPicker primitives →
+        </Link>
       </ScrollView>
 
       {/* Tap-outside-to-dismiss. The OS keyboard already closes on a background

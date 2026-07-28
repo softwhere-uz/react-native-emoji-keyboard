@@ -115,11 +115,15 @@ yarn format     # prettier --write
 
 ## Status
 
-**`0.1.0`** — first stable release, published to npm as `latest`. v0.1 is a tight drop-in replacement
-for the incumbent's inline call sites (composer + reaction picker), **verified running on web
-(react-native-web) and iOS (iPhone 16 Pro simulator, Fabric)**. A dedicated compact reaction strip,
-composable headless parts, per-emoji skin-tone memory, frecency ranking, multilingual CLDR search, and
-an Expo config plugin for bundled glyphs are on the roadmap.
+**`0.6.0`** — published to npm as `latest`. A tight drop-in replacement for the incumbent's inline call
+sites (composer + reaction picker), **verified running on web (react-native-web), iOS (iPhone 16 Pro
+simulator, Fabric), and Android (Pixel 5 emulator)**. Since v0.1, working [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)
+section by section: per-emoji skin-tone memory, emoticon + multi-word search, tofu-gating, a11y
+semantics + reduced motion, `shouldInclude` / custom category icons, functional multi-select, auto
+dark theme, preview bar, `EmojiModal`, `ReactionStrip`, favorites, device-keyboard-height sizing +
+seamless keyboard swap, **composable `EmojiPicker.*` primitives**, **keyboard grid-navigation**, and a
+**pluggable/async data source**. Still open: multilingual CLDR search + locale packs, an Expo config
+plugin for bundled glyphs, and Sticker/GIF provider tabs.
 
 ## Links
 

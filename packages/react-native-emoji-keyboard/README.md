@@ -62,7 +62,10 @@ Most React Native emoji pickers are unmaintained, ship years-old emoji, and brea
 - 🔎 **Ranked search** over names and shortcodes.
 - 💾 **Bring-your-own storage** — the library owns no storage; pass an adapter (or none).
 - 🧩 **Headless core** — the hooks and pure helpers powering the UI are exported for custom pickers.
-- 🪶 **No `reanimated` requirement** in v0.1 — hard peers are just `react`, `react-native`, and `@shopify/flash-list`.
+- 🧱 **Composable `EmojiPicker.*` primitives** — `Root` / `Search` / `Viewport` / `List` / `Empty` / `Loading` / `SkinToneSelector` with overridable `CategoryHeader` / `Row` / `Emoji` slots ([frimousse](https://frimousse.liveblocks.io/)-style, adapted to RN).
+- ♿ **Accessibility** — arrow-key grid navigation (with a visible focus ring), screen-reader roles, reduced-motion, and RTL-aware horizontal keys.
+- 📦 **Pluggable data source** — ship the full bundled set, a smaller initial slice, or lazy-load/fetch emoji from a `Promise`.
+- 🪶 **No `reanimated` requirement** in the core path — hard peers are just `react`, `react-native`, and `@shopify/flash-list`.
 
 ## Table of contents
 
@@ -77,6 +80,9 @@ Most React Native emoji pickers are unmaintained, ship years-old emoji, and brea
 - [Search](#search)
 - [Bundled data](#bundled-data)
 - [Headless / advanced](#headless--advanced)
+- [Composable primitives](#composable-primitives)
+- [Keyboard navigation & accessibility](#keyboard-navigation--accessibility)
+- [Async / lazy data](#async--lazy-data)
 - [Compatibility](#compatibility)
 - [How web parity works](#how-web-parity-works)
 - [Roadmap](#roadmap)
@@ -187,6 +193,12 @@ export function MessageReactionPicker({ onReact }: { onReact: (glyph: string) =>
 | `numberOfColumns` | `number` | computed from width | **First-party.** Force a fixed column count. |
 | `onActiveCategoryChange` | `(category: CategoryTypes) => void` | — | **First-party.** Fired when the visible category changes via scroll or tab press. |
 | `defaultSkinTone` | `SkinTone` | `'none'` | **First-party.** Default skin tone applied to tone-enabled emoji. |
+| `colorScheme` | `'light' \| 'dark' \| 'auto'` | `'light'` | **First-party.** Base theme; `'auto'` follows the OS. `theme` merges on top. |
+| `maxEmojiVersion` | `number` | — | **First-party.** Hide emoji newer than this Emoji spec version (avoids □ “tofu” on older system fonts). |
+| `shouldInclude` | `(e: CompactEmoji) => boolean` | — | **First-party.** Per-emoji include predicate (e.g. hide flags). Memoize it. |
+| `enablePreview` | `boolean` | `false` | **First-party.** Show a preview bar (glyph + name) for the emoji under the finger/pointer. |
+| `enableFavorites` | `boolean` | `false` | **First-party.** Leading favorites section + a ⭐ toggle in the long-press popover. |
+| `emojiSource` | `EmojiSource` | bundled set | **First-party.** Pluggable/async data source — array, `() => list`, or `() => Promise<list>` (see [Async / lazy data](#async--lazy-data)). |
 
 `CategoryTypes`: `smileys_emotion`, `people_body`, `animals_nature`, `food_drink`, `travel_places`, `activities`, `objects`, `symbols`, `flags`, plus the virtual `recently_used` and `search`.
 `SkinTone`: `'none' | 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark'`.
@@ -338,8 +350,11 @@ Building a custom picker? The hooks and pure helpers that power `<EmojiKeyboard>
 import {
   // pure helpers
   searchEmojis, applyTone, toEmojiType, buildGrid, slugify, toneIndex,
+  // grid keyboard-navigation model (pure)
+  nextGridFocus, firstGridFocus, emojiAtFocus, isGridNavKey,
   // hooks
   useEmojiData, useSearch, useRecents, useSkinTone, useCategorySync, useReveal,
+  useGridNavigation, useAsyncEmojiData,
   // data + utilities
   emojis, defaultTheme, createMemoryAdapter,
 } from '@softwhere-uz/react-native-emoji-keyboard';
@@ -351,6 +366,77 @@ const payload = toEmojiType(top, glyph);        // EmojiType
 ```
 
 `useReveal` is the pure, platform-agnostic `requestAnimationFrame` reveal hook that makes the web empty-grid bug impossible ([details](#how-web-parity-works)).
+
+## Composable primitives
+
+Prefer building your own picker from parts? The `EmojiPicker.*` namespace exposes a
+[frimousse](https://frimousse.liveblocks.io/)-style composable API adapted to React Native. `Root`
+owns all state (search, skin tone, data, keyboard focus); the children read it via context, and the
+`List` slots let you fully restyle each layer while the library keeps virtualization, sticky headers,
+the rAF reveal, and keyboard navigation.
+
+```tsx
+import { EmojiPicker } from '@softwhere-uz/react-native-emoji-keyboard';
+
+function Picker({ onPick }: { onPick: (e: EmojiType) => void }) {
+  return (
+    <EmojiPicker.Root onEmojiSelect={onPick} columns={9} colorScheme="auto" enableRecentlyUsed>
+      <EmojiPicker.Search placeholder="Search emoji" />
+      <EmojiPicker.Viewport>
+        <EmojiPicker.Loading>{() => <Text>Loading…</Text>}</EmojiPicker.Loading>
+        <EmojiPicker.Empty>{({ search }) => <Text>No emoji for “{search}”</Text>}</EmojiPicker.Empty>
+        <EmojiPicker.List
+          components={{
+            // every slot is optional — override only what you need
+            CategoryHeader: ({ label }) => <Text style={styles.header}>{label}</Text>,
+            Emoji: ({ emoji, onPress, focused }) => (
+              <Pressable onPress={onPress} style={focused && styles.ring}>
+                <Text>{emoji.glyph}</Text>
+              </Pressable>
+            ),
+          }}
+        />
+      </EmojiPicker.Viewport>
+      <EmojiPicker.SkinToneSelector />
+    </EmojiPicker.Root>
+  );
+}
+```
+
+Read the live preview emoji from any descendant with `EmojiPicker.useActiveEmoji()`, and the tone pair
+with `EmojiPicker.useSkinTone()` (`[skinTone, setSkinTone]`).
+
+## Keyboard navigation & accessibility
+
+On web, the grid is a focusable `grid` landmark: arrow keys move a roving focus (with a visible focus
+ring), `Home`/`End` jump within the row (`Ctrl`/`Cmd` widens to the whole grid), and `Enter`/`Space`
+select. Under RTL the horizontal arrows follow visual direction. The movement model is a pure,
+unit-tested function you can reuse in a custom UI:
+
+```tsx
+import { useGridNavigation, nextGridFocus } from '@softwhere-uz/react-native-emoji-keyboard';
+
+const nav = useGridNavigation(grid);          // focus state + move()/focusFirst()/activeEmoji
+const next = nextGridFocus(grid, focus, 'ArrowDown'); // pure: { item, col } | null
+```
+
+Cells also carry screen-reader roles/labels, `accessibilityState`, and honor reduced-motion.
+
+## Async / lazy data
+
+Pass `emojiSource` to `<EmojiKeyboard>` or `<EmojiPicker.Root>` to ship a smaller initial bundle and
+lazy-load the rest, or fetch from a CDN. It accepts an array, a function returning a list, or a
+function returning a `Promise` — while a promise is in flight the grid stays empty and
+`EmojiPicker.Loading` renders. The bundled Emoji 17.0 set stays the synchronous default.
+
+```tsx
+// tiny first paint, then swap in the full set:
+const source = useCallback(() => import('./emoji-full').then((m) => m.emojis), []);
+<EmojiKeyboard onEmojiSelected={onPick} emojiSource={source} />
+
+// or the headless hook directly:
+const { emojis, loading, error } = useAsyncEmojiData(source);
+```
 
 ## Compatibility
 
@@ -372,8 +458,9 @@ The incumbent gated first paint on a deferred post-interaction callback, which d
 
 ## Roadmap
 
-- **v0.2** — headless composable `Root/Search/List/SkinTone` parts, per-emoji skin-tone memory, frecency ranking, multilingual CLDR search, accessibility (screen reader / keyboard nav / RTL), a compact `ReactionStrip`.
-- **v1.0** — an Expo config plugin for an optional consistent bundled glyph set, a dual-mode renderer (system vs bundled glyphs), and a provider/panel API for Stickers + GIF tabs.
+Shipped since v0.1 (tracking [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)): per-emoji skin-tone memory, emoticon + multi-word ranked search, emoji-version “tofu” gating, reduced-motion + screen-reader semantics, `shouldInclude` / custom category icons, functional multi-select, auto light/dark theme, preview bar, `EmojiModal` bottom sheet, `ReactionStrip`, favorites, composable `EmojiPicker.*` primitives, keyboard grid-navigation, and a pluggable/async data source.
+
+- **Still open** — multilingual CLDR search + bundled locale packs, arrow-key focus/scroll polish verified on-device, RTL device pass, a consistent bundled glyph set (Expo config plugin), and a provider/panel API for Stickers + GIF tabs.
 
 ## Development
 
