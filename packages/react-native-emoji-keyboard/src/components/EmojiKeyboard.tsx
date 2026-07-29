@@ -14,6 +14,7 @@
  */
 import * as React from 'react';
 import {
+  AccessibilityInfo,
   Animated,
   LayoutAnimation,
   PanResponder,
@@ -234,6 +235,18 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     () => sections.map((s) => s.category).filter((c) => c !== 'search'),
     [sections]
   );
+
+  // §9 a11y: announce the search result count to screen readers as it changes.
+  React.useEffect(() => {
+    if (!searching) return;
+    const count = grid.items.reduce(
+      (n, it) => n + (it.type === 'row' ? it.emojis.length : 0),
+      0
+    );
+    AccessibilityInfo.announceForAccessibility(
+      count === 0 ? 'No emoji found' : `${count} emoji found`
+    );
+  }, [searching, grid]);
 
   const { activeCategory, setActiveCategory, onViewableCategory } = useCategorySync(
     grid.categoryToIndex,
