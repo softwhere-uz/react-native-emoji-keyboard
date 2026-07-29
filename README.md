@@ -115,15 +115,17 @@ yarn format     # prettier --write
 
 ## Status
 
-**`0.6.0`** — published to npm as `latest`. A tight drop-in replacement for the incumbent's inline call
+**`0.7.0`** — published to npm as `latest`. A tight drop-in replacement for the incumbent's inline call
 sites (composer + reaction picker), **verified running on web (react-native-web), iOS (iPhone 16 Pro
 simulator, Fabric), and Android (Pixel 5 emulator)**. Since v0.1, working [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)
-section by section: per-emoji skin-tone memory, emoticon + multi-word search, tofu-gating, a11y
-semantics + reduced motion, `shouldInclude` / custom category icons, functional multi-select, auto
-dark theme, preview bar, `EmojiModal`, `ReactionStrip`, favorites, device-keyboard-height sizing +
-seamless keyboard swap, **composable `EmojiPicker.*` primitives**, **keyboard grid-navigation**, and a
-**pluggable/async data source**. Still open: multilingual CLDR search + locale packs, an Expo config
-plugin for bundled glyphs, and Sticker/GIF provider tabs.
+section by section — now covering nearly the whole tracker: per-emoji skin-tone memory, emoticon +
+multi-word search, tofu-gating, a11y semantics + reduced motion + keyboard grid-navigation,
+`shouldInclude` / custom category icons, functional multi-select, auto dark theme, preview bar,
+`EmojiModal`, `ReactionStrip`, favorites, seamless keyboard swap, composable `EmojiPicker.*`
+primitives, pluggable/async data, **bundled locale packs**, **image-backed emoji (Twemoji / custom /
+animated)**, **category swipe gesture**, **web render-support detection**, and a **pluggable
+sticker/GIF provider API**. Only two roadmap items remain: multilingual keyword *search* (in-language
+queries) and a native OS emoji-keyboard mode (needs a native TurboModule, outside this JS library).
 
 ## Links
 

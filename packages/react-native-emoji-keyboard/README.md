@@ -65,6 +65,9 @@ Most React Native emoji pickers are unmaintained, ship years-old emoji, and brea
 - 🧱 **Composable `EmojiPicker.*` primitives** — `Root` / `Search` / `Viewport` / `List` / `Empty` / `Loading` / `SkinToneSelector` with overridable `CategoryHeader` / `Row` / `Emoji` slots ([frimousse](https://frimousse.liveblocks.io/)-style, adapted to RN).
 - ♿ **Accessibility** — arrow-key grid navigation (with a visible focus ring), screen-reader roles, reduced-motion, and RTL-aware horizontal keys.
 - 📦 **Pluggable data source** — ship the full bundled set, a smaller initial slice, or lazy-load/fetch emoji from a `Promise`.
+- 🌐 **Bundled locale packs** — authoritative CLDR category labels for ~27 locales via a `locale` prop.
+- 🖼️ **Image-backed emoji** — a consistent cross-OS bundled glyph set (Twemoji), custom (server) emoji, and animated GIF emoji through one resolver.
+- 👉 **Category swipe gesture** + optional cross-fade, **web render-support detection** (`hideUnsupported`), and a **pluggable sticker/GIF provider API** (`MediaPanel`).
 - 🪶 **No `reanimated` requirement** in the core path — hard peers are just `react`, `react-native`, and `@shopify/flash-list`.
 
 ## Table of contents
@@ -83,6 +86,10 @@ Most React Native emoji pickers are unmaintained, ship years-old emoji, and brea
 - [Composable primitives](#composable-primitives)
 - [Keyboard navigation & accessibility](#keyboard-navigation--accessibility)
 - [Async / lazy data](#async--lazy-data)
+- [Localization (locale packs)](#localization-locale-packs)
+- [Image-backed emoji (bundled glyph set / custom / animated)](#image-backed-emoji-bundled-glyph-set--custom--animated)
+- [Category swipe & render-support](#category-swipe--render-support)
+- [Stickers & GIFs (provider API)](#stickers--gifs-provider-api)
 - [Compatibility](#compatibility)
 - [How web parity works](#how-web-parity-works)
 - [Roadmap](#roadmap)
@@ -199,6 +206,11 @@ export function MessageReactionPicker({ onReact }: { onReact: (glyph: string) =>
 | `enablePreview` | `boolean` | `false` | **First-party.** Show a preview bar (glyph + name) for the emoji under the finger/pointer. |
 | `enableFavorites` | `boolean` | `false` | **First-party.** Leading favorites section + a ⭐ toggle in the long-press popover. |
 | `emojiSource` | `EmojiSource` | bundled set | **First-party.** Pluggable/async data source — array, `() => list`, or `() => Promise<list>` (see [Async / lazy data](#async--lazy-data)). |
+| `locale` | `string` | English | **First-party.** BCP-47-ish code selecting a bundled category-label pack (e.g. `'es'`, `'pt-BR'`). See [Localization](#localization-locale-packs). |
+| `emojiImageResolver` | `(emoji) => string \| undefined` | — | **First-party.** Render emoji as images (Twemoji glyph set / custom / animated). Pass `twemojiImageResolver`. |
+| `enableCategoryChangeGesture` | `boolean` | `false` | **First-party.** Horizontal swipe jumps to the prev/next category (no Reanimated). |
+| `enableCategoryChangeAnimation` | `boolean` | `false` | **First-party.** Brief cross-fade on a tab/swipe category jump (honors reduced-motion). |
+| `hideUnsupported` | `boolean` | `false` | **First-party.** Web-only: hide emoji the platform can’t render (canvas probe). No-op on native. |
 
 `CategoryTypes`: `smileys_emotion`, `people_body`, `animals_nature`, `food_drink`, `travel_places`, `activities`, `objects`, `symbols`, `flags`, plus the virtual `recently_used` and `search`.
 `SkinTone`: `'none' | 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark'`.
@@ -438,6 +450,67 @@ const source = useCallback(() => import('./emoji-full').then((m) => m.emojis), [
 const { emojis, loading, error } = useAsyncEmojiData(source);
 ```
 
+## Localization (locale packs)
+
+Pass a `locale` to translate the category labels — bundled, authoritative CLDR strings for ~27 locales
+(`AVAILABLE_LOCALES`). Matching is case-insensitive and falls back from a region tag to the base
+language (`pt-BR` → `pt`). Your `translation` prop still overrides per key; the virtual
+`recently_used` / `favorites` / `search` labels fall back to English unless you translate them.
+
+```tsx
+<EmojiKeyboard onEmojiSelected={onPick} locale="es" enableSearchBar />
+// or a custom pack: getLocalePack('fr'), resolveTranslation('de', { search: 'Suchen' })
+```
+
+> Localized keyword *search* (typing a query in your language) is a separate, larger feature and is **not** bundled — labels only.
+
+## Image-backed emoji (bundled glyph set / custom / animated)
+
+Render emoji as images instead of the system font — one mechanism covers three needs:
+
+```tsx
+import { EmojiKeyboard, twemojiImageResolver } from '@softwhere-uz/react-native-emoji-keyboard';
+
+// 1. Consistent, cross-OS glyph set (Twemoji, served from a CDN — no bundled sprite):
+<EmojiKeyboard onEmojiSelected={onPick} emojiImageResolver={twemojiImageResolver} />
+
+// 2. Custom / animated emoji via the data override (each carries its own image URL;
+//    a `.gif` animates where the platform supports it):
+<EmojiKeyboard
+  onEmojiSelected={onPick}
+  emojisByCategory={[{ title: 'objects', data: [
+    { emoji: ':party:', name: 'party', v: '1', toneEnabled: false, img: 'https://cdn/party.gif' },
+  ] }]}
+/>
+```
+
+A custom emoji's own `img` URL always wins; otherwise `emojiImageResolver(emoji)` decides (return
+`undefined` to keep the native glyph). `createTwemojiResolver({ format: 'png' })` and `twemojiUrl(glyph)`
+are exported too.
+
+## Category swipe & render-support
+
+- `enableCategoryChangeGesture` — a horizontal swipe over the grid jumps to the prev/next category (built-in gesture responder, no Reanimated; vertical scrolling is untouched). `enableCategoryChangeAnimation` adds a brief cross-fade on tab/swipe jumps (honors reduced-motion).
+- `hideUnsupported` — on **web**, canvas-measures whether the platform can actually render each emoji and hides the □-tofu ones. No-op on native/SSR; opt-in and best-effort; composes with `shouldInclude` + `maxEmojiVersion`.
+
+## Stickers & GIFs (provider API)
+
+The library ships no provider and no API keys — implement `MediaProvider` against Giphy / Tenor / your
+own backend, and drop a `MediaPanel` (search box + grid) behind your own tab strip. `useMediaSearch`
+handles the debounced query, trending fallback, and race-safe cancellation.
+
+```tsx
+import { MediaPanel, type MediaProvider } from '@softwhere-uz/react-native-emoji-keyboard';
+
+const giphy: MediaProvider = {
+  id: 'giphy', title: 'GIFs',
+  search: async (q, { signal } = {}) => (await fetchGiphy(q, signal)).map(toMediaItem),
+  trending: async () => (await fetchGiphyTrending()).map(toMediaItem),
+};
+
+<MediaPanel provider={giphy} onSelect={(item) => insert(item.url)} placeholder="Search GIFs" />
+```
+
 ## Compatibility
 
 | | |
@@ -458,9 +531,9 @@ The incumbent gated first paint on a deferred post-interaction callback, which d
 
 ## Roadmap
 
-Shipped since v0.1 (tracking [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)): per-emoji skin-tone memory, emoticon + multi-word ranked search, emoji-version “tofu” gating, reduced-motion + screen-reader semantics, `shouldInclude` / custom category icons, functional multi-select, auto light/dark theme, preview bar, `EmojiModal` bottom sheet, `ReactionStrip`, favorites, composable `EmojiPicker.*` primitives, keyboard grid-navigation, and a pluggable/async data source.
+Shipped since v0.1 (tracking [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)): per-emoji skin-tone memory, emoticon + multi-word ranked search, emoji-version “tofu” gating, reduced-motion + screen-reader semantics, `shouldInclude` / custom category icons, functional multi-select, auto light/dark theme, preview bar, `EmojiModal` bottom sheet, `ReactionStrip`, favorites, composable `EmojiPicker.*` primitives, keyboard grid-navigation, a pluggable/async data source, **bundled locale packs**, **image-backed emoji (Twemoji glyph set / custom / animated)**, **category swipe gesture**, **web render-support detection**, and a **pluggable sticker/GIF provider API**.
 
-- **Still open** — multilingual CLDR search + bundled locale packs, arrow-key focus/scroll polish verified on-device, RTL device pass, a consistent bundled glyph set (Expo config plugin), and a provider/panel API for Stickers + GIF tabs.
+- **Still open** — multilingual keyword *search* (typing queries in-language; needs bundled per-locale keyword data), and a **native OS emoji-keyboard mode** (iOS `MCEmojiPicker` / Android `emoji2`), which requires a native TurboModule and so lives outside this JS-only library. On-device polish (arrow-key focus/scroll, RTL) is verified by the maintainer.
 
 ## Development
 

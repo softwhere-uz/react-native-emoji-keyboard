@@ -104,6 +104,9 @@ export default function ComposerScreen() {
             enableSearchBar
             enableRecentlyUsed
             enableFavorites
+            // v0.7 demos: swipe left/right to change category (+ cross-fade).
+            enableCategoryChangeGesture
+            enableCategoryChangeAnimation
           />
         </View>
       ) : null}
