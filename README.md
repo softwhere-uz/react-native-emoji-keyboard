@@ -124,8 +124,10 @@ multi-word search, tofu-gating, a11y semantics + reduced motion + keyboard grid-
 `EmojiModal`, `ReactionStrip`, favorites, seamless keyboard swap, composable `EmojiPicker.*`
 primitives, pluggable/async data, **bundled locale packs**, **image-backed emoji (Twemoji / custom /
 animated)**, **category swipe gesture**, **web render-support detection**, and a **pluggable
-sticker/GIF provider API**. Only two roadmap items remain: multilingual keyword *search* (in-language
-queries) and a native OS emoji-keyboard mode (needs a native TurboModule, outside this JS library).
+sticker/GIF provider API**. The library is intentionally **100% JavaScript** (no native code — works in
+Expo Go, no prebuild). One roadmap item remains: multilingual keyword *search* (in-language queries).
+A native OS emoji-keyboard mode is a deliberate **non-goal** — it would need a native module and break
+Expo Go.
 
 ## Links
 

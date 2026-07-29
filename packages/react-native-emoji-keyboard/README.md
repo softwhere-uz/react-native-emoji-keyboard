@@ -533,7 +533,8 @@ The incumbent gated first paint on a deferred post-interaction callback, which d
 
 Shipped since v0.1 (tracking [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)): per-emoji skin-tone memory, emoticon + multi-word ranked search, emoji-version “tofu” gating, reduced-motion + screen-reader semantics, `shouldInclude` / custom category icons, functional multi-select, auto light/dark theme, preview bar, `EmojiModal` bottom sheet, `ReactionStrip`, favorites, composable `EmojiPicker.*` primitives, keyboard grid-navigation, a pluggable/async data source, **bundled locale packs**, **image-backed emoji (Twemoji glyph set / custom / animated)**, **category swipe gesture**, **web render-support detection**, and a **pluggable sticker/GIF provider API**.
 
-- **Still open** — multilingual keyword *search* (typing queries in-language; needs bundled per-locale keyword data), and a **native OS emoji-keyboard mode** (iOS `MCEmojiPicker` / Android `emoji2`), which requires a native TurboModule and so lives outside this JS-only library. On-device polish (arrow-key focus/scroll, RTL) is verified by the maintainer.
+- **Still open** — multilingual keyword *search* (typing queries in-language; needs bundled per-locale keyword data). On-device polish (arrow-key focus/scroll, RTL) is verified by the maintainer.
+- **Won't do** — a **native OS emoji-keyboard mode** (iOS `MCEmojiPicker` / Android `emoji2`) would require a native module, which breaks **Expo Go**. This library is intentionally **100% JavaScript** (no prebuild, works in Expo Go). If you need the native picker, wrap it in your own app; it won't land in this package.
 
 ## Development
 
