@@ -211,6 +211,11 @@ export function MessageReactionPicker({ onReact }: { onReact: (glyph: string) =>
 | `enableCategoryChangeGesture` | `boolean` | `false` | **First-party.** Horizontal swipe jumps to the prev/next category (no Reanimated). |
 | `enableCategoryChangeAnimation` | `boolean` | `false` | **First-party.** Brief cross-fade on a tab/swipe category jump (honors reduced-motion). |
 | `hideUnsupported` | `boolean` | `false` | **First-party.** Web-only: hide emoji the platform can’t render (canvas probe). No-op on native. |
+| `recentsMode` | `'recency' \| 'frequency' \| 'frecency'` | `'recency'` | **First-party.** Rank the leading used-emoji section by recency, usage count, or a blend; non-recency labels it “Frequently used” with a cold-start set. |
+| `searchDebounceMs` | `number` | `0` | **First-party.** Debounce applied to the search query. |
+| `searchMinChars` | `number` | `1` | **First-party.** Minimum query length before searching. |
+| `hapticOnSelect` | `boolean` | `false` | **First-party.** Short built-in `Vibration` on select (no native dep; no-op on web). |
+| `ListComponent` | `React.ElementType` | `FlashList` | **First-party.** Swap the virtualized list (e.g. `BottomSheetFlatList`). |
 
 `CategoryTypes`: `smileys_emotion`, `people_body`, `animals_nature`, `food_drink`, `travel_places`, `activities`, `objects`, `symbols`, `flags`, plus the virtual `recently_used` and `search`.
 `SkinTone`: `'none' | 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark'`.
@@ -361,7 +366,9 @@ Building a custom picker? The hooks and pure helpers that power `<EmojiKeyboard>
 ```tsx
 import {
   // pure helpers
-  searchEmojis, applyTone, toEmojiType, buildGrid, slugify, toneIndex,
+  searchEmojis, searchByShortcodePrefix, applyTone, toEmojiType, buildGrid, slugify, toneIndex,
+  // frecency + reaction history
+  useFrequentlyUsed, useReactionHistory,
   // grid keyboard-navigation model (pure)
   nextGridFocus, firstGridFocus, emojiAtFocus, isGridNavKey,
   // hooks
