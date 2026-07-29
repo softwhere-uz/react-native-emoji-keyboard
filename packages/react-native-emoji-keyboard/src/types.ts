@@ -191,6 +191,13 @@ export interface EmojiKeyboardProps {
   locale?: string;
   disabledCategories?: CategoryTypes[];
   enableRecentlyUsed?: boolean;
+  /**
+   * How the leading used-emoji section is ranked when `enableRecentlyUsed`:
+   * `'recency'` (default, most-recent-first), `'frequency'` (most-used-first),
+   * or `'frecency'` (usage count blended with recency). Non-recency modes label
+   * the section "Frequently used" and seed a curated cold-start set.
+   */
+  recentsMode?: 'recency' | 'frequency' | 'frecency';
   categoryPosition?: CategoryPosition;
   enableSearchBar?: boolean;
   hideSearchBarClearIcon?: boolean;

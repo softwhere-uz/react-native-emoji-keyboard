@@ -32,6 +32,7 @@ import {
   useCategorySync,
   useEmojiData,
   useFavorites,
+  useFrequentlyUsed,
   useMultiSelect,
   useEmojiSupport,
   useRecents,
@@ -113,6 +114,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     translation,
     disabledCategories,
     enableRecentlyUsed = false,
+    recentsMode = 'recency',
     categoryPosition = 'top',
     enableSearchBar = false,
     hideSearchBarClearIcon = false,
@@ -140,11 +142,13 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     hideUnsupported = false,
   } = props;
 
-  // Merge a bundled locale label pack under any explicit `translation` override.
-  const resolvedTranslation = React.useMemo(
-    () => resolveTranslation(locale, translation),
-    [locale, translation]
-  );
+  // Merge a bundled locale label pack under any explicit `translation` override,
+  // and relabel the leading section "Frequently used" in non-recency modes.
+  const resolvedTranslation = React.useMemo(() => {
+    const base = resolveTranslation(locale, translation);
+    if (recentsMode === 'recency' || base?.recently_used) return base;
+    return { ...base, recently_used: 'Frequently used' };
+  }, [locale, translation, recentsMode]);
 
   // §3: optionally drop emoji this platform can't render (web canvas probe),
   // composed with the consumer's own `shouldInclude`.
@@ -180,7 +184,18 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     storage,
     defaultTone: defaultSkinTone,
   });
-  const { recents, addRecent } = useRecents({ storage, enabled: enableRecentlyUsed });
+  const usingFrequency = enableRecentlyUsed && recentsMode !== 'recency';
+  const { recents, addRecent } = useRecents({
+    storage,
+    enabled: enableRecentlyUsed && recentsMode === 'recency',
+  });
+  const { frequent, bump } = useFrequentlyUsed({
+    storage,
+    enabled: usingFrequency,
+    mode: recentsMode === 'frequency' ? 'frequency' : 'frecency',
+  });
+  // The leading section list: recency-ordered recents, or frequency-ranked.
+  const recentsList = usingFrequency ? frequent : recents;
   const { favorites, toggleFavorite, isFavorite } = useFavorites({ storage, enabled: enableFavorites });
   // §8: resolve the (possibly async / lazy) emoji bundle; search over it.
   const { emojis: sourceEmojis } = useAsyncEmojiData(emojiSource);
@@ -193,7 +208,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enableFavorites,
     favorites,
     enableRecentlyUsed,
-    recents,
+    recents: recentsList,
     skinTone,
     toneMemory,
     numColumns,
@@ -239,10 +254,12 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     (emoji: RenderEmoji) => {
       const alreadySelected = toggle(emoji.glyph);
       const payload = toEmojiType(emoji.source, emoji.glyph, { alreadySelected });
-      if (enableRecentlyUsed) addRecent(payload);
+      // Track into whichever leading-section store is active.
+      if (usingFrequency) bump(payload);
+      else if (enableRecentlyUsed) addRecent(payload);
       onEmojiSelected(payload);
     },
-    [toggle, enableRecentlyUsed, addRecent, onEmojiSelected]
+    [toggle, usingFrequency, bump, enableRecentlyUsed, addRecent, onEmojiSelected]
   );
 
   // Active emoji for the optional preview bar (updated on press-in).

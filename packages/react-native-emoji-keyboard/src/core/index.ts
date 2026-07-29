@@ -52,6 +52,8 @@ export type { GridFocus, GridNavKey, GridNavModifiers } from './gridNavigation';
 export { useReveal } from './useReveal';
 export { useRecents } from './useRecents';
 export { useFavorites } from './useFavorites';
+export { useFrequentlyUsed } from './useFrequentlyUsed';
+export type { FrequentMode } from './useFrequentlyUsed';
 export { useSkinTone } from './useSkinTone';
 export { useMultiSelect } from './useMultiSelect';
 export { useSearch } from './useSearch';

@@ -123,6 +123,7 @@ export {
   useReveal,
   useRecents,
   useFavorites,
+  useFrequentlyUsed,
   useSkinTone,
   useMultiSelect,
   useSearch,
