@@ -31,6 +31,7 @@ import {
 import type { RenderEmoji } from '../core';
 import { DEFAULT_EMOJI_SIZE } from '../constants';
 import type { CompactEmoji } from '../data';
+import { resolveTranslation } from '../i18n';
 import type { CategoryTypes, EmojiKeyboardProps, SkinTone } from '../types';
 import { darkTheme, defaultTheme, ThemeProvider, useTheme } from '../theme';
 import { CategoryBar } from './CategoryBar';
@@ -122,7 +123,14 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enablePreview = false,
     enableFavorites = false,
     emojiSource,
+    locale,
   } = props;
+
+  // Merge a bundled locale label pack under any explicit `translation` override.
+  const resolvedTranslation = React.useMemo(
+    () => resolveTranslation(locale, translation),
+    [locale, translation]
+  );
 
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -167,7 +175,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     toneMemory,
     numColumns,
     searchResults: searching ? results : null,
-    translation,
+    translation: resolvedTranslation,
     emojisByCategoryOverride: emojisByCategory,
     maxEmojiVersion,
     shouldInclude,
@@ -329,7 +337,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
           query={query}
           setQuery={setQuery}
           hideClearIcon={hideSearchBarClearIcon}
-          placeholder={translation?.search}
+          placeholder={resolvedTranslation?.search}
         />
       ) : null}
 

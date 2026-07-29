@@ -97,6 +97,50 @@ const groups = presentGroupIds.map((id, index) => {
   return { id, key, label: message?.message ?? key, order: index };
 });
 
+// --- locale packs (bundled CLDR category labels) -------------------------
+// Emit authoritative category-label translations from every emojibase locale.
+// Only the 9 real categories are translated (CLDR data); the virtual
+// recently_used / favorites / search labels fall back to English unless the
+// consumer overrides them via `translation`. Search-by-localized-keyword
+// (multilingual search) is intentionally out of scope here — labels only.
+const LOCALE_KEYS = [
+  'bn', 'da', 'de', 'en-gb', 'es', 'es-mx', 'et', 'fi', 'fr', 'hi', 'hu', 'it',
+  'ja', 'ko', 'lt', 'ms', 'nb', 'nl', 'pl', 'pt', 'ru', 'sv', 'th', 'uk', 'vi',
+  'zh', 'zh-hant',
+];
+/** emojibase group key (hyphenated) → our CategoryTypes (underscored). */
+const GROUP_KEY_TO_CATEGORY = {
+  'smileys-emotion': 'smileys_emotion',
+  'people-body': 'people_body',
+  'animals-nature': 'animals_nature',
+  'food-drink': 'food_drink',
+  'travel-places': 'travel_places',
+  activities: 'activities',
+  objects: 'objects',
+  symbols: 'symbols',
+  flags: 'flags',
+};
+/** Uppercase the first character (leaves CJK/other scripts unchanged). */
+const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+/** @type {Record<string, Record<string, string>>} */
+const locales = {};
+for (const key of LOCALE_KEYS) {
+  let msgs;
+  try {
+    msgs = require(`emojibase-data/${key}/messages.json`);
+  } catch {
+    continue; // locale not present in this emojibase build — skip it
+  }
+  /** @type {Record<string, string>} */
+  const pack = {};
+  for (const g of msgs.groups || []) {
+    const category = GROUP_KEY_TO_CATEGORY[g.key];
+    if (category && g.message) pack[category] = capitalize(g.message);
+  }
+  if (Object.keys(pack).length > 0) locales[key] = pack;
+}
+
 const emojiVersion = String(ebdPkg.version).split('.').slice(0, 2).join('.'); // "17.0.0" -> "17.0"
 // NOTE: output is intentionally DETERMINISTIC (no wall-clock timestamp) so the
 // committed bundle is byte-reproducible and the CI staleness gate (git diff)
@@ -140,8 +184,19 @@ writeFileSync(
   )};\nexport default meta;\n`
 );
 
+writeFileSync(
+  join(outDir, 'locales.ts'),
+  `${BANNER}import type { CategoryTypes } from '../../types';\n` +
+    `const locales: Record<string, Partial<Record<CategoryTypes, string>>> = ${JSON.stringify(
+      locales,
+      null,
+      2
+    )};\nexport default locales;\n`
+);
+
 console.log(
   `✔ emoji-data: ${emojis.length} emoji, ${groups.length} groups, ` +
     `${emojis.filter((e) => e.t).length} tone-enabled, ` +
-    `${emojis.filter((e) => e.m).length} with emoticons, Emoji ${emojiVersion}`
+    `${emojis.filter((e) => e.m).length} with emoticons, Emoji ${emojiVersion}, ` +
+    `${Object.keys(locales).length} locale packs`
 );

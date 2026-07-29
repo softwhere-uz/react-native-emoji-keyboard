@@ -15,6 +15,7 @@ import { useSkinTone } from './useSkinTone';
 import { useEmojiData } from './useEmojiData';
 import { useGridNavigation, type UseGridNavigation } from './useGridNavigation';
 import { useAsyncEmojiData, type EmojiSource } from './useAsyncEmojiData';
+import { resolveTranslation } from '../i18n';
 import type { GridModel, RenderEmoji, Section } from './internal-types';
 import type { CompactEmoji } from '../data';
 import type { CategoryTypes, EmojiType, SkinTone, StorageAdapter } from '../types';
@@ -51,8 +52,10 @@ export type EmojiPickerStateOptions = {
   disabledCategories?: CategoryTypes[];
   /** Per-emoji include predicate (memoize it). */
   shouldInclude?: (emoji: CompactEmoji) => boolean;
-  /** Localized category / search labels. */
+  /** Localized category / search labels (merged over any `locale` pack). */
   translation?: Partial<Record<CategoryTypes, string>>;
+  /** BCP-47-ish locale code selecting a bundled category-label pack. */
+  locale?: string;
   /** Storage adapter for recents / favorites / tone memory. */
   storage?: StorageAdapter;
   /** Show a leading recently-used section. */
@@ -129,10 +132,17 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     disabledCategories,
     shouldInclude,
     translation,
+    locale,
     storage,
     enableRecentlyUsed = false,
     enableFavorites = false,
   } = opts;
+
+  // Bundled locale label pack merged under any explicit `translation`.
+  const resolvedTranslation = React.useMemo(
+    () => resolveTranslation(locale, translation),
+    [locale, translation]
+  );
 
   // §8: resolve the (possibly async) bundle.
   const { emojis: sourceEmojis, loading, error } = useAsyncEmojiData(emojiSource);
@@ -186,7 +196,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     toneMemory,
     numColumns: columns,
     searchResults: isSearching ? results : null,
-    translation,
+    translation: resolvedTranslation,
     maxEmojiVersion: emojiVersion,
     shouldInclude,
     emojiSource: sourceEmojis,
@@ -253,7 +263,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
       isFavorite,
       toggleFavorite,
       nav,
-      translation,
+      translation: resolvedTranslation,
     }),
     [
       columns,
@@ -275,7 +285,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
       isFavorite,
       toggleFavorite,
       nav,
-      translation,
+      resolvedTranslation,
     ]
   );
 }

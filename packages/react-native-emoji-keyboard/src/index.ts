@@ -77,6 +77,9 @@ export type {
 export { emojis, groups, meta } from './data';
 export type { CompactEmoji, EmojiGroup, EmojiMeta } from './data';
 
+// --- i18n · bundled locale label packs (§1) ------------------------------
+export { AVAILABLE_LOCALES, getLocalePack, resolveTranslation } from './i18n';
+
 // --- theming -------------------------------------------------------------
 export { defaultTheme, darkTheme } from './theme';
 

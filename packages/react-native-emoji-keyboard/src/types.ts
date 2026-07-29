@@ -175,6 +175,13 @@ export interface EmojiKeyboardProps {
   expandable?: boolean;
   expandedHeight?: number | string;
   translation?: CategoryTranslation;
+  /**
+   * BCP-47-ish locale code (e.g. `'es'`, `'pt-BR'`, `'zh-Hant'`) selecting a
+   * bundled category-label pack. `translation` merges on top per key; unmatched
+   * locales and the virtual `recently_used` / `favorites` / `search` labels fall
+   * back to English. See `AVAILABLE_LOCALES`.
+   */
+  locale?: string;
   disabledCategories?: CategoryTypes[];
   enableRecentlyUsed?: boolean;
   categoryPosition?: CategoryPosition;
