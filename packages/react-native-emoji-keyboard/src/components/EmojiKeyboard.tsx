@@ -33,6 +33,7 @@ import {
   useEmojiData,
   useFavorites,
   useMultiSelect,
+  useEmojiSupport,
   useRecents,
   useSearch,
   useSkinTone,
@@ -136,6 +137,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     emojiImageResolver,
     enableCategoryChangeGesture = false,
     enableCategoryChangeAnimation = false,
+    hideUnsupported = false,
   } = props;
 
   // Merge a bundled locale label pack under any explicit `translation` override.
@@ -143,6 +145,15 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     () => resolveTranslation(locale, translation),
     [locale, translation]
   );
+
+  // §3: optionally drop emoji this platform can't render (web canvas probe),
+  // composed with the consumer's own `shouldInclude`.
+  const supportPredicate = useEmojiSupport(hideUnsupported);
+  const effectiveShouldInclude = React.useMemo(() => {
+    if (!supportPredicate) return shouldInclude;
+    if (!shouldInclude) return supportPredicate;
+    return (e: CompactEmoji) => supportPredicate(e) && shouldInclude(e);
+  }, [supportPredicate, shouldInclude]);
 
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -190,7 +201,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     translation: resolvedTranslation,
     emojisByCategoryOverride: emojisByCategory,
     maxEmojiVersion,
-    shouldInclude,
+    shouldInclude: effectiveShouldInclude,
     emojiSource: sourceEmojis,
   });
 

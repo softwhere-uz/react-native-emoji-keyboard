@@ -278,4 +278,11 @@ export interface EmojiKeyboardProps {
    * swipe (not while scrolling). Honors reduced-motion. Defaults to `false`.
    */
   enableCategoryChangeAnimation?: boolean;
+  /**
+   * On web, canvas-measure whether the platform can actually render each emoji
+   * and hide the ones that would show as □ "tofu". No-op on native / SSR (where
+   * it can't measure). Opt-in and best-effort; composes with `shouldInclude` and
+   * `maxEmojiVersion`. Defaults to `false`.
+   */
+  hideUnsupported?: boolean;
 }

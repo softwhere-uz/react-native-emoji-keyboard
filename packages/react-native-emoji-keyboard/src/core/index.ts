@@ -24,6 +24,13 @@ export {
 export type { EmojiImageResolver, TwemojiUrlOptions } from './emojiImage';
 export { adjacentCategory } from './categoryNav';
 export {
+  pixelsDiffer,
+  hasInk,
+  createEmojiSupportChecker,
+  useEmojiSupport,
+} from './renderSupport';
+export type { EmojiSupportChecker } from './renderSupport';
+export {
   nextGridFocus,
   firstGridFocus,
   lastGridFocus,

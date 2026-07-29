@@ -127,6 +127,9 @@ export {
   createTwemojiResolver,
   // category-swipe stepping
   adjacentCategory,
+  // web render-support detection
+  createEmojiSupportChecker,
+  useEmojiSupport,
 } from './core';
 
 export type {
