@@ -18,8 +18,8 @@ import type { ViewabilityConfig } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import type { FlashListRef } from '@shopify/flash-list';
 
-import type { GridItem, GridModel, RenderEmoji } from '../core';
-import { isGridNavKey, useGridNavigation, useReveal } from '../core';
+import type { EmojiImageResolver, GridItem, GridModel, RenderEmoji } from '../core';
+import { isGridNavKey, resolveEmojiImageUri, useGridNavigation, useReveal } from '../core';
 import type { CategoryTypes } from '../types';
 import { useTheme } from '../theme';
 import { CategoryHeader } from './CategoryHeader';
@@ -48,6 +48,8 @@ export type EmojiGridProps = {
   onLongPress?: (emoji: RenderEmoji, layout: EmojiCellLayout) => void;
   /** Fired on press-in — the emoji became "active" (drives the preview bar). */
   onActivate?: (emoji: RenderEmoji) => void;
+  /** Resolve an image URL per emoji (bundled glyph set / custom / animated). */
+  emojiImageResolver?: EmojiImageResolver;
   /** Fired when the top-most visible category changes via scroll. */
   onActiveCategoryChange?: (category: CategoryTypes) => void;
   /** Fired when a programmatic jump-to-category scroll fails. */
@@ -77,6 +79,7 @@ function EmojiGridComponent(
     onSelect,
     onLongPress,
     onActivate,
+    emojiImageResolver,
     onActiveCategoryChange,
     onScrollToIndexFailed,
   } = props;
@@ -177,12 +180,13 @@ function EmojiGridComponent(
               onPress={onSelect}
               onLongPress={onLongPress}
               onActivate={onActivate}
+              imageUri={resolveEmojiImageUri(emoji, emojiImageResolver)}
             />
           ))}
         </View>
       );
     },
-    [emojiSize, widthPercent, selectedEmojis, focus, onSelect, onLongPress, onActivate]
+    [emojiSize, widthPercent, selectedEmojis, focus, onSelect, onLongPress, onActivate, emojiImageResolver]
   );
 
   const keyExtractor = React.useCallback((item: GridItem) => item.key, []);

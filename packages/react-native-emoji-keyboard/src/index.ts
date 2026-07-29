@@ -119,6 +119,12 @@ export {
   useGridNavigation,
   // §8 async / lazy data loading
   useAsyncEmojiData,
+  // image-backed emoji (bundled glyph set / custom / animated)
+  twemojiUrl,
+  toCodePoints,
+  resolveEmojiImageUri,
+  twemojiImageResolver,
+  createTwemojiResolver,
 } from './core';
 
 export type {
@@ -132,4 +138,6 @@ export type {
   UseGridNavigation,
   EmojiSource,
   AsyncEmojiData,
+  EmojiImageResolver,
+  TwemojiUrlOptions,
 } from './core';

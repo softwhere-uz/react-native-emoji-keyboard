@@ -12,7 +12,7 @@
  * so the final short row still aligns to the grid columns.
  */
 import * as React from 'react';
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text } from 'react-native';
 import type { DimensionValue, LayoutRectangle } from 'react-native';
 
 import type { RenderEmoji } from '../core';
@@ -42,6 +42,11 @@ export type EmojiCellProps = {
   onLongPress?: (emoji: RenderEmoji, layout: EmojiCellLayout) => void;
   /** Pressed in — used to drive the preview bar (the emoji became "active"). */
   onActivate?: (emoji: RenderEmoji) => void;
+  /**
+   * Image URL to render instead of the unicode glyph (bundled glyph set / custom
+   * / animated emoji). When set, the cell draws an `<Image>` sized to `emojiSize`.
+   */
+  imageUri?: string;
 };
 
 function EmojiCellComponent({
@@ -53,6 +58,7 @@ function EmojiCellComponent({
   onPress,
   onLongPress,
   onActivate,
+  imageUri,
 }: EmojiCellProps): React.ReactElement {
   const theme = useTheme();
   const containerRef = React.useRef<React.ComponentRef<typeof Pressable>>(null);
@@ -122,9 +128,19 @@ function EmojiCellComponent({
         selected ? { backgroundColor: theme.emoji.selected } : null,
       ]}
     >
-      <Text allowFontScaling={false} style={[styles.glyph, { fontSize: emojiSize, lineHeight }]}>
-        {emoji.glyph}
-      </Text>
+      {imageUri ? (
+        <Image
+          source={{ uri: imageUri }}
+          // Square, roughly glyph-sized. `resizeMode` keeps aspect for GIFs.
+          style={{ width: emojiSize, height: emojiSize }}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
+      ) : (
+        <Text allowFontScaling={false} style={[styles.glyph, { fontSize: emojiSize, lineHeight }]}>
+          {emoji.glyph}
+        </Text>
+      )}
     </Pressable>
   );
 }

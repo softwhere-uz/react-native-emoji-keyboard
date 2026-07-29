@@ -15,6 +15,14 @@ export { filterByEmojiVersion } from './version';
 export { resolveReaction, DEFAULT_QUICK_REACTIONS } from './reactions';
 export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 export {
+  toCodePoints,
+  twemojiUrl,
+  resolveEmojiImageUri,
+  twemojiImageResolver,
+  createTwemojiResolver,
+} from './emojiImage';
+export type { EmojiImageResolver, TwemojiUrlOptions } from './emojiImage';
+export {
   nextGridFocus,
   firstGridFocus,
   lastGridFocus,

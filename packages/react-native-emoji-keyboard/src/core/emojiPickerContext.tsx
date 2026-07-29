@@ -15,6 +15,7 @@ import { useSkinTone } from './useSkinTone';
 import { useEmojiData } from './useEmojiData';
 import { useGridNavigation, type UseGridNavigation } from './useGridNavigation';
 import { useAsyncEmojiData, type EmojiSource } from './useAsyncEmojiData';
+import type { EmojiImageResolver } from './emojiImage';
 import { resolveTranslation } from '../i18n';
 import type { GridModel, RenderEmoji, Section } from './internal-types';
 import type { CompactEmoji } from '../data';
@@ -62,6 +63,8 @@ export type EmojiPickerStateOptions = {
   enableRecentlyUsed?: boolean;
   /** Show a leading favorites section + long-press favoriting. */
   enableFavorites?: boolean;
+  /** Render emoji as images (bundled glyph set / custom / animated). */
+  emojiImageResolver?: EmojiImageResolver;
 };
 
 /** Everything the `EmojiPicker.*` primitives read from context. */
@@ -87,6 +90,7 @@ export type EmojiPickerContextValue = {
   toggleFavorite: (emoji: RenderEmoji) => void;
   nav: UseGridNavigation;
   translation: Partial<Record<CategoryTypes, string>> | undefined;
+  emojiImageResolver: EmojiImageResolver | undefined;
 };
 
 const EmojiPickerContext = React.createContext<EmojiPickerContextValue | null>(null);
@@ -136,6 +140,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     storage,
     enableRecentlyUsed = false,
     enableFavorites = false,
+    emojiImageResolver,
   } = opts;
 
   // Bundled locale label pack merged under any explicit `translation`.
@@ -264,6 +269,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
       toggleFavorite,
       nav,
       translation: resolvedTranslation,
+      emojiImageResolver,
     }),
     [
       columns,
@@ -286,6 +292,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
       toggleFavorite,
       nav,
       resolvedTranslation,
+      emojiImageResolver,
     ]
   );
 }

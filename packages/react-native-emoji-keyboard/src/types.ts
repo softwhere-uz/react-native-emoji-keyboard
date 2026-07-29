@@ -11,6 +11,7 @@ import type * as React from 'react';
 import type { TextStyle, ViewStyle } from 'react-native';
 import type { CompactEmoji } from './data';
 import type { EmojiSource } from './core/useAsyncEmojiData';
+import type { EmojiImageResolver } from './core/emojiImage';
 
 // --- categories ----------------------------------------------------------
 
@@ -49,6 +50,12 @@ export type JsonEmoji = {
   v: string;
   toneEnabled: boolean;
   keywords?: string[];
+  /**
+   * Optional image URL for a custom (server/animated) emoji — rendered as an
+   * `<Image>` instead of the unicode glyph. Lets `emojisByCategory` carry custom
+   * emoji categories (Slack/Discord-style, or animated GIFs).
+   */
+  img?: string;
 };
 
 /**
@@ -251,4 +258,12 @@ export interface EmojiKeyboardProps {
    * while a Promise is in flight the grid stays empty. Memoize a function source.
    */
   emojiSource?: EmojiSource;
+  /**
+   * Render emoji as images instead of the system font — a consistent bundled
+   * glyph set (identical across OSes). Pass `twemojiImageResolver` for Twemoji,
+   * or a custom `(emoji) => url | undefined`; return `undefined` to keep the
+   * native glyph for that emoji. Custom emoji with their own `img` URL always
+   * render as images regardless. `.gif` URLs animate where the platform allows.
+   */
+  emojiImageResolver?: EmojiImageResolver;
 }

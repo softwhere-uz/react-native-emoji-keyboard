@@ -69,6 +69,7 @@ function jsonEmojiToCompact(e: JsonEmoji): CompactEmoji {
   };
   if (Array.isArray(e.keywords) && e.keywords.length > 0) compact.k = e.keywords;
   if (Number.isFinite(version)) compact.v = version;
+  if (e.img) compact.img = e.img;
   return compact;
 }
 

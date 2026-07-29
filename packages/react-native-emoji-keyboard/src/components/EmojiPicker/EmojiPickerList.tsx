@@ -14,7 +14,12 @@ import type { DimensionValue, LayoutChangeEvent, ViewabilityConfig } from 'react
 import { FlashList } from '@shopify/flash-list';
 import type { FlashListRef } from '@shopify/flash-list';
 
-import { isGridNavKey, useEmojiPickerContext, useReveal } from '../../core';
+import {
+  isGridNavKey,
+  resolveEmojiImageUri,
+  useEmojiPickerContext,
+  useReveal,
+} from '../../core';
 import type { GridItem, RenderEmoji } from '../../core';
 import type { CategoryTypes } from '../../types';
 import { DEFAULT_EMOJI_SIZE } from '../../constants';
@@ -36,6 +41,8 @@ export type EmojiPickerEmojiProps = {
   onPress: () => void;
   onActivate: () => void;
   onLongPress?: () => void;
+  /** Image URL to render instead of the glyph (bundled set / custom / animated). */
+  imageUri?: string;
 };
 
 /** The overridable slots for {@link EmojiPickerList}. */
@@ -74,6 +81,7 @@ function DefaultEmoji(props: EmojiPickerEmojiProps): React.ReactElement {
       onPress={props.onPress}
       onActivate={props.onActivate}
       onLongPress={props.onLongPress ? () => props.onLongPress?.() : undefined}
+      imageUri={props.imageUri}
     />
   );
 }
@@ -92,7 +100,8 @@ export function EmojiPickerList(props: EmojiPickerListProps): React.ReactElement
   const { emojiSize = DEFAULT_EMOJI_SIZE, contentBottomInset = 8, components, onEmojiLongPress } =
     props;
   const theme = useTheme();
-  const { grid, columns, setColumns, nav, select, setActiveEmoji } = useEmojiPickerContext();
+  const { grid, columns, setColumns, nav, select, setActiveEmoji, emojiImageResolver } =
+    useEmojiPickerContext();
 
   const SlotHeader = components?.CategoryHeader ?? DefaultCategoryHeader;
   const SlotRow = components?.Row ?? DefaultRow;
@@ -142,12 +151,13 @@ export function EmojiPickerList(props: EmojiPickerListProps): React.ReactElement
               onPress={() => select(emoji)}
               onActivate={() => setActiveEmoji(emoji)}
               onLongPress={onEmojiLongPress ? () => onEmojiLongPress(emoji) : undefined}
+              imageUri={resolveEmojiImageUri(emoji, emojiImageResolver)}
             />
           ))}
         </SlotRow>
       );
     },
-    [SlotHeader, SlotRow, SlotEmoji, focus, emojiSize, widthPercent, select, setActiveEmoji, onEmojiLongPress]
+    [SlotHeader, SlotRow, SlotEmoji, focus, emojiSize, widthPercent, select, setActiveEmoji, onEmojiLongPress, emojiImageResolver]
   );
 
   const keyExtractor = React.useCallback((item: GridItem) => item.key, []);

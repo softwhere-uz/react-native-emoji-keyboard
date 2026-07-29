@@ -36,6 +36,15 @@ export interface CompactEmoji {
    * Present only when the emoji supports the five canonical tones.
    */
   t?: string[];
+  /**
+   * Optional image URL to render INSTEAD of the unicode glyph — for custom
+   * (server/Slack/Discord-style) emoji or animated GIF emoji. Never set on the
+   * bundled set; only supplied by consumer overrides (`emojisByCategory`). When
+   * present the cell renders an `<Image>`; a `.gif` renders animated where the
+   * platform supports it. See also the `emojiImageResolver` prop for rendering
+   * standard emoji as a consistent bundled glyph set (e.g. Twemoji).
+   */
+  img?: string;
 }
 
 /** A picker category, derived from an emojibase group. */

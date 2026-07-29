@@ -124,6 +124,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enableFavorites = false,
     emojiSource,
     locale,
+    emojiImageResolver,
   } = props;
 
   // Merge a bundled locale label pack under any explicit `translation` override.
@@ -353,6 +354,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
         onSelect={emit}
         onLongPress={handleLongPress}
         onActivate={enablePreview ? handleActivate : undefined}
+        emojiImageResolver={emojiImageResolver}
         onActiveCategoryChange={onViewableCategory}
         onScrollToIndexFailed={onCategoryChangeFailed}
       />
