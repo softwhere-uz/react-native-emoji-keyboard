@@ -1,6 +1,6 @@
 {
   "name": "@softwhere-uz/react-native-emoji-keyboard",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Universal (iOS · Android · Web), New-Architecture-first emoji keyboard & reaction picker for React Native and Expo. Bundled Emoji 17.0 data, FlashList v2, deep theming, first-class web parity — one package, no extra data dependency.",
   "keywords": [
     "react-native",
