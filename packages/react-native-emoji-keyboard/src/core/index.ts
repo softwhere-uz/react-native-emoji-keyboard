@@ -30,6 +30,14 @@ export {
   useEmojiSupport,
 } from './renderSupport';
 export type { EmojiSupportChecker } from './renderSupport';
+export { useMediaSearch, mediaPreviewUri } from './media';
+export type {
+  MediaItem,
+  MediaProvider,
+  MediaQueryOptions,
+  MediaSearchState,
+  UseMediaSearchOptions,
+} from './media';
 export {
   nextGridFocus,
   firstGridFocus,

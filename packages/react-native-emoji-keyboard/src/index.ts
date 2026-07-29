@@ -19,6 +19,18 @@ export type { ReactionStripProps } from './components/ReactionStrip';
 export { EmojiModal } from './components/EmojiModal';
 export type { EmojiModalProps } from './components/EmojiModal';
 
+// --- rich-media (sticker / GIF) provider API + panel (§7) ----------------
+export { MediaGrid, MediaPanel } from './components/Media';
+export type { MediaGridProps, MediaPanelProps } from './components/Media';
+export { useMediaSearch, mediaPreviewUri } from './core';
+export type {
+  MediaItem,
+  MediaProvider,
+  MediaQueryOptions,
+  MediaSearchState,
+  UseMediaSearchOptions,
+} from './core';
+
 // --- composable headless primitives (§5 · frimousse parity) --------------
 export {
   EmojiPicker,
