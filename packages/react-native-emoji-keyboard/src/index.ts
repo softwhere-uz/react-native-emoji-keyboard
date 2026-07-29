@@ -110,6 +110,7 @@ export {
   filterByEmojiVersion,
   resolveReaction,
   DEFAULT_QUICK_REACTIONS,
+  useReactionHistory,
   readAdapter,
   writeAdapter,
   // §4 keyboard grid-navigation (pure movement model)

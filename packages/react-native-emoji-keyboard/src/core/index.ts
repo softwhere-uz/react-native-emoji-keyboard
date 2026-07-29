@@ -13,6 +13,8 @@ export { buildGrid } from './buildGrid';
 export { searchEmojis } from './search';
 export { filterByEmojiVersion } from './version';
 export { resolveReaction, DEFAULT_QUICK_REACTIONS } from './reactions';
+export { useReactionHistory } from './useReactionHistory';
+export type { ReactionHistoryMode } from './useReactionHistory';
 export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 export {
   toCodePoints,

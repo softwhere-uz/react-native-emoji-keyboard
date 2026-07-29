@@ -74,6 +74,7 @@ export const STORAGE_KEYS = {
   skinTone: '@softwhere-uz/emoji-keyboard:skin-tone',
   skinToneMemory: '@softwhere-uz/emoji-keyboard:skin-tone-memory',
   frequentlyUsed: '@softwhere-uz/emoji-keyboard:frequently-used',
+  reactions: '@softwhere-uz/emoji-keyboard:reactions',
 } as const;
 
 /** Default number of recently-used emoji to retain. */
