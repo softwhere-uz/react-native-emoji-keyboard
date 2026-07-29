@@ -17,9 +17,11 @@ import {
   Animated,
   LayoutAnimation,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   useColorScheme,
+  Vibration,
   View,
 } from 'react-native';
 import type { DimensionValue, LayoutChangeEvent, ViewStyle } from 'react-native';
@@ -117,6 +119,8 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     recentsMode = 'recency',
     categoryPosition = 'top',
     enableSearchBar = false,
+    searchDebounceMs = 0,
+    searchMinChars = 1,
     hideSearchBarClearIcon = false,
     categoryOrder,
     disableSafeArea = false,
@@ -141,6 +145,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enableCategoryChangeAnimation = false,
     hideUnsupported = false,
     ListComponent,
+    hapticOnSelect = false,
   } = props;
 
   // Merge a bundled locale label pack under any explicit `translation` override,
@@ -200,8 +205,11 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
   const { favorites, toggleFavorite, isFavorite } = useFavorites({ storage, enabled: enableFavorites });
   // §8: resolve the (possibly async / lazy) emoji bundle; search over it.
   const { emojis: sourceEmojis } = useAsyncEmojiData(emojiSource);
-  const { query, setQuery, results } = useSearch(sourceEmojis as CompactEmoji[]);
-  const searching = enableSearchBar && query.trim().length > 0;
+  const { query, setQuery, results, isSearching } = useSearch(sourceEmojis as CompactEmoji[], {
+    debounceMs: searchDebounceMs,
+    minChars: searchMinChars,
+  });
+  const searching = enableSearchBar && isSearching;
 
   const { grid, sections } = useEmojiData({
     categoryOrder: categoryOrder ? [...categoryOrder] : undefined,
@@ -255,12 +263,20 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     (emoji: RenderEmoji) => {
       const alreadySelected = toggle(emoji.glyph);
       const payload = toEmojiType(emoji.source, emoji.glyph, { alreadySelected });
+      // Optional built-in haptic (no native dep; no-op on web / missing permission).
+      if (hapticOnSelect && Platform.OS !== 'web') {
+        try {
+          Vibration.vibrate(10);
+        } catch {
+          // VIBRATE permission not granted — ignore.
+        }
+      }
       // Track into whichever leading-section store is active.
       if (usingFrequency) bump(payload);
       else if (enableRecentlyUsed) addRecent(payload);
       onEmojiSelected(payload);
     },
-    [toggle, usingFrequency, bump, enableRecentlyUsed, addRecent, onEmojiSelected]
+    [toggle, hapticOnSelect, usingFrequency, bump, enableRecentlyUsed, addRecent, onEmojiSelected]
   );
 
   // Active emoji for the optional preview bar (updated on press-in).

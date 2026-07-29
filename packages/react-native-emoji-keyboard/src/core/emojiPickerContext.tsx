@@ -64,6 +64,10 @@ export type EmojiPickerStateOptions = {
   enableRecentlyUsed?: boolean;
   /** Ranking for the leading section: recency (default), frequency, or frecency. */
   recentsMode?: 'recency' | 'frequency' | 'frecency';
+  /** Debounce (ms) applied to the search query. Default `0`. */
+  searchDebounceMs?: number;
+  /** Minimum query length before searching. Default `1`. */
+  searchMinChars?: number;
   /** Show a leading favorites section + long-press favoriting. */
   enableFavorites?: boolean;
   /** Render emoji as images (bundled glyph set / custom / animated). */
@@ -143,6 +147,8 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     storage,
     enableRecentlyUsed = false,
     recentsMode = 'recency',
+    searchDebounceMs = 0,
+    searchMinChars = 1,
     enableFavorites = false,
     emojiImageResolver,
   } = opts;
@@ -203,8 +209,10 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
   });
 
   // Search over the active bundle.
-  const { query, setQuery, results } = useSearch(sourceEmojis as CompactEmoji[]);
-  const isSearching = query.trim().length > 0;
+  const { query, setQuery, results, isSearching } = useSearch(sourceEmojis as CompactEmoji[], {
+    debounceMs: searchDebounceMs,
+    minChars: searchMinChars,
+  });
 
   const { grid, sections } = useEmojiData({
     categoryOrder: categoryOrder ? [...categoryOrder] : undefined,

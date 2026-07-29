@@ -107,6 +107,7 @@ export {
   toEmojiType,
   buildGrid,
   searchEmojis,
+  searchByShortcodePrefix,
   filterByEmojiVersion,
   resolveReaction,
   DEFAULT_QUICK_REACTIONS,
