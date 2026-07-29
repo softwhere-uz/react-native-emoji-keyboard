@@ -266,4 +266,16 @@ export interface EmojiKeyboardProps {
    * render as images regardless. `.gif` URLs animate where the platform allows.
    */
   emojiImageResolver?: EmojiImageResolver;
+  /**
+   * Let a horizontal swipe over the grid jump to the previous/next category
+   * (clamped at the ends). Coexists with vertical scrolling — only clearly
+   * horizontal drags are claimed. Uses the built-in gesture responder (no
+   * Reanimated). Defaults to `false`.
+   */
+  enableCategoryChangeGesture?: boolean;
+  /**
+   * Briefly cross-fade the grid when the category changes via a tab press or
+   * swipe (not while scrolling). Honors reduced-motion. Defaults to `false`.
+   */
+  enableCategoryChangeAnimation?: boolean;
 }

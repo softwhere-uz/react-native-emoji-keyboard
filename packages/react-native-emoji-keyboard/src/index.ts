@@ -125,6 +125,8 @@ export {
   resolveEmojiImageUri,
   twemojiImageResolver,
   createTwemojiResolver,
+  // category-swipe stepping
+  adjacentCategory,
 } from './core';
 
 export type {

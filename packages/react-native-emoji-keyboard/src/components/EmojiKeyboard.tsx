@@ -13,10 +13,19 @@
  * fallback when the optional peer is absent.
  */
 import * as React from 'react';
-import { LayoutAnimation, Pressable, StyleSheet, useColorScheme, View } from 'react-native';
+import {
+  Animated,
+  LayoutAnimation,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from 'react-native';
 import type { DimensionValue, LayoutChangeEvent, ViewStyle } from 'react-native';
 
 import {
+  adjacentCategory,
   applyTone,
   toEmojiType,
   useAsyncEmojiData,
@@ -125,6 +134,8 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     emojiSource,
     locale,
     emojiImageResolver,
+    enableCategoryChangeGesture = false,
+    enableCategoryChangeAnimation = false,
   } = props;
 
   // Merge a bundled locale label pack under any explicit `translation` override.
@@ -266,14 +277,54 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     [emit, rememberTone]
   );
 
-  // --- tab press → jump grid --------------------------------------------
+  // --- category-change animation (explicit jumps only, not scroll-sync) --
+  const catFade = React.useRef(new Animated.Value(1)).current;
+  const pulseCategoryChange = React.useCallback(() => {
+    if (!enableCategoryChangeAnimation || reduceMotion) return;
+    catFade.setValue(0.4);
+    Animated.timing(catFade, { toValue: 1, duration: 160, useNativeDriver: true }).start();
+  }, [enableCategoryChangeAnimation, reduceMotion, catFade]);
+
+  // --- tab press / swipe → jump grid ------------------------------------
   const handlePressCategory = React.useCallback(
     (category: CategoryTypes) => {
       setActiveCategory(category);
       gridRef.current?.scrollToCategory(category);
+      pulseCategoryChange();
     },
-    [setActiveCategory]
+    [setActiveCategory, pulseCategoryChange]
   );
+
+  // Horizontal swipe → previous/next category. A ref carries the latest values
+  // into the responder (created once) so its handlers never go stale.
+  const gestureRef = React.useRef({
+    ordered: orderedCategories,
+    active: activeCategory as CategoryTypes | undefined,
+    enabled: enableCategoryChangeGesture,
+    jump: handlePressCategory,
+  });
+  gestureRef.current = {
+    ordered: orderedCategories,
+    active: activeCategory,
+    enabled: enableCategoryChangeGesture,
+    jump: handlePressCategory,
+  };
+  const panResponder = React.useRef(
+    PanResponder.create({
+      // Claim only clearly-horizontal drags, so vertical scrolling is untouched.
+      onMoveShouldSetPanResponder: (_e, g) =>
+        gestureRef.current.enabled &&
+        Math.abs(g.dx) > 24 &&
+        Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+      onPanResponderRelease: (_e, g) => {
+        if (Math.abs(g.dx) < 40) return;
+        const dir: 1 | -1 = g.dx < 0 ? 1 : -1; // swipe left → next
+        const { ordered, active, jump } = gestureRef.current;
+        const next = adjacentCategory(ordered, active, dir);
+        if (next) jump(next);
+      },
+    })
+  ).current;
 
   // --- sizing ------------------------------------------------------------
   const [expanded, setExpanded] = React.useState(false);
@@ -344,20 +395,44 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
 
       {categoryPosition === 'top' ? catBar : null}
 
-      <EmojiGrid
-        ref={gridRef}
-        grid={grid}
-        emojiSize={emojiSize}
-        numColumns={numColumns}
-        contentBottomInset={categoryPosition === 'floating' ? 64 : 8}
-        selectedEmojis={selectedSet}
-        onSelect={emit}
-        onLongPress={handleLongPress}
-        onActivate={enablePreview ? handleActivate : undefined}
-        emojiImageResolver={emojiImageResolver}
-        onActiveCategoryChange={onViewableCategory}
-        onScrollToIndexFailed={onCategoryChangeFailed}
-      />
+      {enableCategoryChangeGesture || enableCategoryChangeAnimation ? (
+        <Animated.View
+          style={
+            enableCategoryChangeAnimation ? [styles.gridWrap, { opacity: catFade }] : styles.gridWrap
+          }
+          {...(enableCategoryChangeGesture ? panResponder.panHandlers : {})}
+        >
+          <EmojiGrid
+            ref={gridRef}
+            grid={grid}
+            emojiSize={emojiSize}
+            numColumns={numColumns}
+            contentBottomInset={categoryPosition === 'floating' ? 64 : 8}
+            selectedEmojis={selectedSet}
+            onSelect={emit}
+            onLongPress={handleLongPress}
+            onActivate={enablePreview ? handleActivate : undefined}
+            emojiImageResolver={emojiImageResolver}
+            onActiveCategoryChange={onViewableCategory}
+            onScrollToIndexFailed={onCategoryChangeFailed}
+          />
+        </Animated.View>
+      ) : (
+        <EmojiGrid
+          ref={gridRef}
+          grid={grid}
+          emojiSize={emojiSize}
+          numColumns={numColumns}
+          contentBottomInset={categoryPosition === 'floating' ? 64 : 8}
+          selectedEmojis={selectedSet}
+          onSelect={emit}
+          onLongPress={handleLongPress}
+          onActivate={enablePreview ? handleActivate : undefined}
+          emojiImageResolver={emojiImageResolver}
+          onActiveCategoryChange={onViewableCategory}
+          onScrollToIndexFailed={onCategoryChangeFailed}
+        />
+      )}
 
       {enablePreview ? <EmojiPreview emoji={activeEmoji} emojiSize={emojiSize + 6} /> : null}
 
@@ -424,6 +499,9 @@ const styles = StyleSheet.create({
   customButtons: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  gridWrap: {
+    flex: 1,
   },
 });
 

@@ -22,6 +22,7 @@ export {
   createTwemojiResolver,
 } from './emojiImage';
 export type { EmojiImageResolver, TwemojiUrlOptions } from './emojiImage';
+export { adjacentCategory } from './categoryNav';
 export {
   nextGridFocus,
   firstGridFocus,
