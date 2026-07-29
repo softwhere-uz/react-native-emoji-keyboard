@@ -14,12 +14,15 @@
  */
 import * as React from 'react';
 import {
+  AccessibilityInfo,
   Animated,
   LayoutAnimation,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   useColorScheme,
+  Vibration,
   View,
 } from 'react-native';
 import type { DimensionValue, LayoutChangeEvent, ViewStyle } from 'react-native';
@@ -32,6 +35,7 @@ import {
   useCategorySync,
   useEmojiData,
   useFavorites,
+  useFrequentlyUsed,
   useMultiSelect,
   useEmojiSupport,
   useRecents,
@@ -113,8 +117,11 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     translation,
     disabledCategories,
     enableRecentlyUsed = false,
+    recentsMode = 'recency',
     categoryPosition = 'top',
     enableSearchBar = false,
+    searchDebounceMs = 0,
+    searchMinChars = 1,
     hideSearchBarClearIcon = false,
     categoryOrder,
     disableSafeArea = false,
@@ -138,13 +145,17 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enableCategoryChangeGesture = false,
     enableCategoryChangeAnimation = false,
     hideUnsupported = false,
+    ListComponent,
+    hapticOnSelect = false,
   } = props;
 
-  // Merge a bundled locale label pack under any explicit `translation` override.
-  const resolvedTranslation = React.useMemo(
-    () => resolveTranslation(locale, translation),
-    [locale, translation]
-  );
+  // Merge a bundled locale label pack under any explicit `translation` override,
+  // and relabel the leading section "Frequently used" in non-recency modes.
+  const resolvedTranslation = React.useMemo(() => {
+    const base = resolveTranslation(locale, translation);
+    if (recentsMode === 'recency' || base?.recently_used) return base;
+    return { ...base, recently_used: 'Frequently used' };
+  }, [locale, translation, recentsMode]);
 
   // §3: optionally drop emoji this platform can't render (web canvas probe),
   // composed with the consumer's own `shouldInclude`.
@@ -180,12 +191,26 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     storage,
     defaultTone: defaultSkinTone,
   });
-  const { recents, addRecent } = useRecents({ storage, enabled: enableRecentlyUsed });
+  const usingFrequency = enableRecentlyUsed && recentsMode !== 'recency';
+  const { recents, addRecent } = useRecents({
+    storage,
+    enabled: enableRecentlyUsed && recentsMode === 'recency',
+  });
+  const { frequent, bump } = useFrequentlyUsed({
+    storage,
+    enabled: usingFrequency,
+    mode: recentsMode === 'frequency' ? 'frequency' : 'frecency',
+  });
+  // The leading section list: recency-ordered recents, or frequency-ranked.
+  const recentsList = usingFrequency ? frequent : recents;
   const { favorites, toggleFavorite, isFavorite } = useFavorites({ storage, enabled: enableFavorites });
   // §8: resolve the (possibly async / lazy) emoji bundle; search over it.
   const { emojis: sourceEmojis } = useAsyncEmojiData(emojiSource);
-  const { query, setQuery, results } = useSearch(sourceEmojis as CompactEmoji[]);
-  const searching = enableSearchBar && query.trim().length > 0;
+  const { query, setQuery, results, isSearching } = useSearch(sourceEmojis as CompactEmoji[], {
+    debounceMs: searchDebounceMs,
+    minChars: searchMinChars,
+  });
+  const searching = enableSearchBar && isSearching;
 
   const { grid, sections } = useEmojiData({
     categoryOrder: categoryOrder ? [...categoryOrder] : undefined,
@@ -193,7 +218,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enableFavorites,
     favorites,
     enableRecentlyUsed,
-    recents,
+    recents: recentsList,
     skinTone,
     toneMemory,
     numColumns,
@@ -210,6 +235,18 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     () => sections.map((s) => s.category).filter((c) => c !== 'search'),
     [sections]
   );
+
+  // §9 a11y: announce the search result count to screen readers as it changes.
+  React.useEffect(() => {
+    if (!searching) return;
+    const count = grid.items.reduce(
+      (n, it) => n + (it.type === 'row' ? it.emojis.length : 0),
+      0
+    );
+    AccessibilityInfo.announceForAccessibility(
+      count === 0 ? 'No emoji found' : `${count} emoji found`
+    );
+  }, [searching, grid]);
 
   const { activeCategory, setActiveCategory, onViewableCategory } = useCategorySync(
     grid.categoryToIndex,
@@ -239,10 +276,20 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     (emoji: RenderEmoji) => {
       const alreadySelected = toggle(emoji.glyph);
       const payload = toEmojiType(emoji.source, emoji.glyph, { alreadySelected });
-      if (enableRecentlyUsed) addRecent(payload);
+      // Optional built-in haptic (no native dep; no-op on web / missing permission).
+      if (hapticOnSelect && Platform.OS !== 'web') {
+        try {
+          Vibration.vibrate(10);
+        } catch {
+          // VIBRATE permission not granted — ignore.
+        }
+      }
+      // Track into whichever leading-section store is active.
+      if (usingFrequency) bump(payload);
+      else if (enableRecentlyUsed) addRecent(payload);
       onEmojiSelected(payload);
     },
-    [toggle, enableRecentlyUsed, addRecent, onEmojiSelected]
+    [toggle, hapticOnSelect, usingFrequency, bump, enableRecentlyUsed, addRecent, onEmojiSelected]
   );
 
   // Active emoji for the optional preview bar (updated on press-in).
@@ -424,6 +471,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
             onLongPress={handleLongPress}
             onActivate={enablePreview ? handleActivate : undefined}
             emojiImageResolver={emojiImageResolver}
+            ListComponent={ListComponent}
             onActiveCategoryChange={onViewableCategory}
             onScrollToIndexFailed={onCategoryChangeFailed}
           />
@@ -440,6 +488,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
           onLongPress={handleLongPress}
           onActivate={enablePreview ? handleActivate : undefined}
           emojiImageResolver={emojiImageResolver}
+          ListComponent={ListComponent}
           onActiveCategoryChange={onViewableCategory}
           onScrollToIndexFailed={onCategoryChangeFailed}
         />

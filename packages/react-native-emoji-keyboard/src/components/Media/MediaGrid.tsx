@@ -18,6 +18,8 @@ export type MediaGridProps = {
   onSelect: (item: MediaItem) => void;
   /** Extra bottom padding for the scroll content. */
   contentBottomInset?: number;
+  /** Swap the virtualized list (e.g. `BottomSheetFlatList`). Defaults to `FlashList`. */
+  ListComponent?: React.ElementType;
 };
 
 function MediaCell({
@@ -45,7 +47,8 @@ function MediaCell({
 }
 
 export function MediaGrid(props: MediaGridProps): React.ReactElement {
-  const { items, numColumns = 3, onSelect, contentBottomInset = 8 } = props;
+  const { items, numColumns = 3, onSelect, contentBottomInset = 8, ListComponent } = props;
+  const ListImpl = (ListComponent ?? FlashList) as typeof FlashList;
 
   const renderItem = React.useCallback(
     ({ item }: { item: MediaItem }) => <MediaCell item={item} onSelect={onSelect} />,
@@ -59,7 +62,7 @@ export function MediaGrid(props: MediaGridProps): React.ReactElement {
 
   return (
     <View style={styles.fill}>
-      <FlashList<MediaItem>
+      <ListImpl
         data={items}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

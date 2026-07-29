@@ -10,6 +10,7 @@ import * as React from 'react';
 import { applyTone, toEmojiType } from './skinTone';
 import { useSearch } from './useSearch';
 import { useRecents } from './useRecents';
+import { useFrequentlyUsed } from './useFrequentlyUsed';
 import { useFavorites } from './useFavorites';
 import { useSkinTone } from './useSkinTone';
 import { useEmojiData } from './useEmojiData';
@@ -61,6 +62,12 @@ export type EmojiPickerStateOptions = {
   storage?: StorageAdapter;
   /** Show a leading recently-used section. */
   enableRecentlyUsed?: boolean;
+  /** Ranking for the leading section: recency (default), frequency, or frecency. */
+  recentsMode?: 'recency' | 'frequency' | 'frecency';
+  /** Debounce (ms) applied to the search query. Default `0`. */
+  searchDebounceMs?: number;
+  /** Minimum query length before searching. Default `1`. */
+  searchMinChars?: number;
   /** Show a leading favorites section + long-press favoriting. */
   enableFavorites?: boolean;
   /** Render emoji as images (bundled glyph set / custom / animated). */
@@ -139,15 +146,20 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     locale,
     storage,
     enableRecentlyUsed = false,
+    recentsMode = 'recency',
+    searchDebounceMs = 0,
+    searchMinChars = 1,
     enableFavorites = false,
     emojiImageResolver,
   } = opts;
 
-  // Bundled locale label pack merged under any explicit `translation`.
-  const resolvedTranslation = React.useMemo(
-    () => resolveTranslation(locale, translation),
-    [locale, translation]
-  );
+  // Bundled locale label pack merged under any explicit `translation`, with the
+  // leading section relabeled "Frequently used" in non-recency modes.
+  const resolvedTranslation = React.useMemo(() => {
+    const base = resolveTranslation(locale, translation);
+    if (recentsMode === 'recency' || base?.recently_used) return base;
+    return { ...base, recently_used: 'Frequently used' };
+  }, [locale, translation, recentsMode]);
 
   // §8: resolve the (possibly async) bundle.
   const { emojis: sourceEmojis, loading, error } = useAsyncEmojiData(emojiSource);
@@ -180,15 +192,27 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
   );
 
   // Recents + favorites.
-  const { recents, addRecent } = useRecents({ storage, enabled: enableRecentlyUsed });
+  const usingFrequency = enableRecentlyUsed && recentsMode !== 'recency';
+  const { recents, addRecent } = useRecents({
+    storage,
+    enabled: enableRecentlyUsed && recentsMode === 'recency',
+  });
+  const { frequent, bump } = useFrequentlyUsed({
+    storage,
+    enabled: usingFrequency,
+    mode: recentsMode === 'frequency' ? 'frequency' : 'frecency',
+  });
+  const recentsList = usingFrequency ? frequent : recents;
   const { favorites, toggleFavorite: toggleFav, isFavorite } = useFavorites({
     storage,
     enabled: enableFavorites,
   });
 
   // Search over the active bundle.
-  const { query, setQuery, results } = useSearch(sourceEmojis as CompactEmoji[]);
-  const isSearching = query.trim().length > 0;
+  const { query, setQuery, results, isSearching } = useSearch(sourceEmojis as CompactEmoji[], {
+    debounceMs: searchDebounceMs,
+    minChars: searchMinChars,
+  });
 
   const { grid, sections } = useEmojiData({
     categoryOrder: categoryOrder ? [...categoryOrder] : undefined,
@@ -196,7 +220,7 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     enableFavorites,
     favorites,
     enableRecentlyUsed,
-    recents,
+    recents: recentsList,
     skinTone,
     toneMemory,
     numColumns: columns,
@@ -229,10 +253,11 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
   const select = React.useCallback(
     (emoji: RenderEmoji) => {
       const payload = toEmojiType(emoji.source, emoji.glyph);
-      if (enableRecentlyUsed) addRecent(payload);
+      if (usingFrequency) bump(payload);
+      else if (enableRecentlyUsed) addRecent(payload);
       onEmojiSelect(payload);
     },
-    [enableRecentlyUsed, addRecent, onEmojiSelect]
+    [usingFrequency, bump, enableRecentlyUsed, addRecent, onEmojiSelect]
   );
 
   const toggleFavorite = React.useCallback(

@@ -73,10 +73,34 @@ export const STORAGE_KEYS = {
   favorites: '@softwhere-uz/emoji-keyboard:favorites',
   skinTone: '@softwhere-uz/emoji-keyboard:skin-tone',
   skinToneMemory: '@softwhere-uz/emoji-keyboard:skin-tone-memory',
+  frequentlyUsed: '@softwhere-uz/emoji-keyboard:frequently-used',
+  reactions: '@softwhere-uz/emoji-keyboard:reactions',
 } as const;
 
 /** Default number of recently-used emoji to retain. */
 export const DEFAULT_RECENTS_LIMIT = 24;
+
+/**
+ * Curated cold-start set for the frequently-used section, so it isn't empty
+ * before the user has picked anything (mirrors emoji-picker-element's
+ * `MOST_COMMONLY_USED_EMOJI`, sourced from FiveThirtyEight/Emojipedia usage data).
+ */
+export const DEFAULT_FREQUENT: readonly string[] = [
+  '😊',
+  '😂',
+  '❤️',
+  '👍',
+  '😍',
+  '😭',
+  '🙏',
+  '😘',
+  '🥰',
+  '😅',
+  '🎉',
+  '🔥',
+  '😉',
+  '✨',
+];
 
 /** Default emoji glyph font size (px) when `emojiSize` is not provided. */
 export const DEFAULT_EMOJI_SIZE = 28;

@@ -11,8 +11,11 @@ export type { GridItem, GridModel, RenderEmoji, Section } from './internal-types
 export { toneIndex, applyTone, slugify, toEmojiType } from './skinTone';
 export { buildGrid } from './buildGrid';
 export { searchEmojis } from './search';
+export { searchByShortcodePrefix } from './shortcodeSearch';
 export { filterByEmojiVersion } from './version';
 export { resolveReaction, DEFAULT_QUICK_REACTIONS } from './reactions';
+export { useReactionHistory } from './useReactionHistory';
+export type { ReactionHistoryMode } from './useReactionHistory';
 export { createMemoryAdapter, readAdapter, writeAdapter } from './adapters';
 export {
   toCodePoints,
@@ -52,6 +55,8 @@ export type { GridFocus, GridNavKey, GridNavModifiers } from './gridNavigation';
 export { useReveal } from './useReveal';
 export { useRecents } from './useRecents';
 export { useFavorites } from './useFavorites';
+export { useFrequentlyUsed } from './useFrequentlyUsed';
+export type { FrequentMode } from './useFrequentlyUsed';
 export { useSkinTone } from './useSkinTone';
 export { useMultiSelect } from './useMultiSelect';
 export { useSearch } from './useSearch';

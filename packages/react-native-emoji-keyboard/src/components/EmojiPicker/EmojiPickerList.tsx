@@ -61,6 +61,8 @@ export type EmojiPickerListProps = {
   components?: EmojiPickerListComponents;
   /** Fired when an emoji is long-pressed (e.g. to open a tone/favorite menu). */
   onEmojiLongPress?: (emoji: RenderEmoji) => void;
+  /** Swap the virtualized list (e.g. `BottomSheetFlatList`). Defaults to `FlashList`. */
+  ListComponent?: React.ElementType;
 };
 
 const VIEWABILITY_CONFIG: ViewabilityConfig = {
@@ -97,8 +99,9 @@ function DefaultCategoryHeader(props: EmojiPickerCategoryHeaderProps): React.Rea
 }
 
 export function EmojiPickerList(props: EmojiPickerListProps): React.ReactElement {
-  const { emojiSize = DEFAULT_EMOJI_SIZE, contentBottomInset = 8, components, onEmojiLongPress } =
+  const { emojiSize = DEFAULT_EMOJI_SIZE, contentBottomInset = 8, components, onEmojiLongPress, ListComponent } =
     props;
+  const ListImpl = (ListComponent ?? FlashList) as typeof FlashList;
   const theme = useTheme();
   const { grid, columns, setColumns, nav, select, setActiveEmoji, emojiImageResolver } =
     useEmojiPickerContext();
@@ -168,7 +171,9 @@ export function EmojiPickerList(props: EmojiPickerListProps): React.ReactElement
   );
 
   const scrollFocusIntoView = React.useCallback((itemIndex: number) => {
-    listRef.current?.scrollToIndex({ index: itemIndex, animated: true, viewPosition: 0.5 }).catch(() => {});
+    // Tolerate FlashList (Promise) and a swapped-in FlatList (void).
+    const r = listRef.current?.scrollToIndex({ index: itemIndex, animated: true, viewPosition: 0.5 });
+    if (r && typeof (r as Promise<void>).catch === 'function') (r as Promise<void>).catch(() => {});
   }, []);
 
   // Web keyboard handler mirroring the batteries-included grid.
@@ -213,7 +218,7 @@ export function EmojiPickerList(props: EmojiPickerListProps): React.ReactElement
       onLayout={onLayout}
       style={[styles.fill, { opacity, backgroundColor: theme.container }]}
     >
-      <FlashList<GridItem>
+      <ListImpl
         ref={listRef}
         data={grid.items}
         renderItem={renderItem}

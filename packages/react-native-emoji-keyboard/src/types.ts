@@ -191,8 +191,19 @@ export interface EmojiKeyboardProps {
   locale?: string;
   disabledCategories?: CategoryTypes[];
   enableRecentlyUsed?: boolean;
+  /**
+   * How the leading used-emoji section is ranked when `enableRecentlyUsed`:
+   * `'recency'` (default, most-recent-first), `'frequency'` (most-used-first),
+   * or `'frecency'` (usage count blended with recency). Non-recency modes label
+   * the section "Frequently used" and seed a curated cold-start set.
+   */
+  recentsMode?: 'recency' | 'frequency' | 'frecency';
   categoryPosition?: CategoryPosition;
   enableSearchBar?: boolean;
+  /** Debounce (ms) applied to the search query — smoother typing. Default `0`. */
+  searchDebounceMs?: number;
+  /** Minimum query length before searching. Default `1`. */
+  searchMinChars?: number;
   hideSearchBarClearIcon?: boolean;
   categoryOrder?: CategoryTypes[];
   disableSafeArea?: boolean;
@@ -278,6 +289,18 @@ export interface EmojiKeyboardProps {
    * swipe (not while scrolling). Honors reduced-motion. Defaults to `false`.
    */
   enableCategoryChangeAnimation?: boolean;
+  /**
+   * Swap the underlying virtualized list — e.g. `BottomSheetFlatList` from
+   * `@gorhom/bottom-sheet` so the grid scrolls correctly inside a bottom sheet.
+   * Must be FlashList-prop-compatible. Defaults to `@shopify/flash-list`.
+   */
+  ListComponent?: React.ElementType;
+  /**
+   * Fire a short haptic buzz on emoji select, using React Native's built-in
+   * `Vibration` API (no native module — Expo Go safe). No-op on web. Requires
+   * the `VIBRATE` Android permission (default in most apps). Defaults to `false`.
+   */
+  hapticOnSelect?: boolean;
   /**
    * On web, canvas-measure whether the platform can actually render each emoji
    * and hide the ones that would show as □ "tofu". No-op on native / SSR (where

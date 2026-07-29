@@ -12,15 +12,31 @@ import * as React from 'react';
 import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 
-import { DEFAULT_QUICK_REACTIONS, resolveReaction } from '../core';
-import type { EmojiType, RecursivePartial, Theme } from '../types';
+import { DEFAULT_QUICK_REACTIONS, resolveReaction, useReactionHistory } from '../core';
+import type { ReactionHistoryMode } from '../core';
+import type { EmojiType, RecursivePartial, StorageAdapter, Theme } from '../types';
 import { darkTheme, defaultTheme, ThemeProvider, useTheme } from '../theme';
 
 export type ReactionStripProps = {
   /** Fired when a reaction is tapped. Same payload shape as `EmojiKeyboard`. */
   onEmojiSelected: (emoji: EmojiType) => void;
-  /** Reactions to show, in order. Defaults to a common chat set. */
+  /**
+   * The slot set, in order — also the customizable base padded in when
+   * `mode` surfaces used reactions. Defaults to a common chat set.
+   */
   emojis?: readonly string[];
+  /**
+   * How the row is sourced: `'static'` (default — just `emojis`), `'recent'`
+   * (most-recently-used first, padded with `emojis`), or `'frequent'`
+   * (most-used-first). Non-static modes persist via `storage` and track on tap.
+   */
+  mode?: 'static' | ReactionHistoryMode;
+  /** Storage adapter for reaction history (in-session only without it). */
+  storage?: StorageAdapter;
+  /** Max slots shown. Defaults to `emojis.length`. */
+  limit?: number;
+  /** Notified when the top ("default") reaction changes — wire to a double-tap. */
+  onDefaultReactionChange?: (glyph: string) => void;
   /** When provided, adds a trailing "＋" button (e.g. to open the full picker). */
   onMorePress?: () => void;
   /** Glyph size in px. Defaults to `28`. */
@@ -38,12 +54,41 @@ export type ReactionStripProps = {
 function ReactionStripBody({
   onEmojiSelected,
   emojis = DEFAULT_QUICK_REACTIONS,
+  mode = 'static',
+  storage,
+  limit,
+  onDefaultReactionChange,
   onMorePress,
   emojiSize = 28,
   selectedEmojis,
   style,
 }: ReactionStripProps): React.ReactElement {
   const theme = useTheme();
+
+  // Recent/frequent history (inert in 'static' mode). The `emojis` prop is the
+  // customizable base padded in behind the used reactions.
+  const history = useReactionHistory({
+    storage,
+    enabled: mode !== 'static',
+    base: emojis,
+    limit,
+    mode: mode === 'frequent' ? 'frequent' : 'recent',
+  });
+  const effectiveEmojis = mode === 'static' ? emojis : history.reactions;
+
+  // Surface the computed default reaction (for a host's double-tap shortcut).
+  const { defaultReaction } = history;
+  React.useEffect(() => {
+    if (mode !== 'static' && defaultReaction) onDefaultReactionChange?.(defaultReaction);
+  }, [mode, defaultReaction, onDefaultReactionChange]);
+
+  const handlePress = React.useCallback(
+    (glyph: string, payload: EmojiType) => {
+      if (mode !== 'static') history.recordReaction(glyph);
+      onEmojiSelected(payload);
+    },
+    [mode, history, onEmojiSelected]
+  );
 
   // Key the set on its CONTENTS so an inline array literal doesn't rebuild it.
   const selectedKey = selectedEmojis ? selectedEmojis.join(' ') : '';
@@ -61,13 +106,13 @@ function ReactionStripBody({
       accessibilityLabel="Quick reactions"
       style={[styles.container, { backgroundColor: theme.container }, style]}
     >
-      {emojis.map((glyph) => {
+      {effectiveEmojis.map((glyph) => {
         const payload = resolveReaction(glyph);
         const isSelected = selected.has(glyph);
         return (
           <Pressable
             key={glyph}
-            onPress={() => onEmojiSelected(payload)}
+            onPress={() => handlePress(glyph, payload)}
             accessibilityRole="button"
             accessibilityLabel={payload.name}
             accessibilityState={{ selected: isSelected }}
