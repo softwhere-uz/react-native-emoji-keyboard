@@ -103,6 +103,7 @@ export default function ComposerScreen() {
             categoryPosition="top"
             enableSearchBar
             enableRecentlyUsed
+            recentsMode="frecency"
             enableFavorites
             // v0.7 demos: swipe left/right to change category (+ cross-fade).
             enableCategoryChangeGesture

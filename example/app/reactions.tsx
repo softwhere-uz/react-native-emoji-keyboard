@@ -24,8 +24,8 @@ export default function ReactionsScreen() {
         {reaction ? <Text style={styles.chosenName}>{reaction.name}</Text> : null}
       </View>
 
-      <Text style={styles.section}>ReactionStrip — tap a quick reaction, or ＋ for the full picker</Text>
-      <ReactionStrip onEmojiSelected={pick} onMorePress={() => setOpen(true)} />
+      <Text style={styles.section}>ReactionStrip — recent-first (tap reactions; they move to the front)</Text>
+      <ReactionStrip onEmojiSelected={pick} onMorePress={() => setOpen(true)} mode="recent" />
 
       {/* EmojiModal bottom-sheet with the full keyboard inside */}
       <EmojiModal open={open} onClose={() => setOpen(false)}>
