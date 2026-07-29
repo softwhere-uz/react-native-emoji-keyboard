@@ -140,6 +140,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
     enableCategoryChangeGesture = false,
     enableCategoryChangeAnimation = false,
     hideUnsupported = false,
+    ListComponent,
   } = props;
 
   // Merge a bundled locale label pack under any explicit `translation` override,
@@ -441,6 +442,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
             onLongPress={handleLongPress}
             onActivate={enablePreview ? handleActivate : undefined}
             emojiImageResolver={emojiImageResolver}
+            ListComponent={ListComponent}
             onActiveCategoryChange={onViewableCategory}
             onScrollToIndexFailed={onCategoryChangeFailed}
           />
@@ -457,6 +459,7 @@ function EmojiKeyboardBody(props: EmojiKeyboardProps): React.ReactElement {
           onLongPress={handleLongPress}
           onActivate={enablePreview ? handleActivate : undefined}
           emojiImageResolver={emojiImageResolver}
+          ListComponent={ListComponent}
           onActiveCategoryChange={onViewableCategory}
           onScrollToIndexFailed={onCategoryChangeFailed}
         />

@@ -50,6 +50,8 @@ export type EmojiGridProps = {
   onActivate?: (emoji: RenderEmoji) => void;
   /** Resolve an image URL per emoji (bundled glyph set / custom / animated). */
   emojiImageResolver?: EmojiImageResolver;
+  /** Swap the virtualized list (e.g. `BottomSheetFlatList`). Defaults to `FlashList`. */
+  ListComponent?: React.ElementType;
   /** Fired when the top-most visible category changes via scroll. */
   onActiveCategoryChange?: (category: CategoryTypes) => void;
   /** Fired when a programmatic jump-to-category scroll fails. */
@@ -59,6 +61,22 @@ export type EmojiGridProps = {
     averageItemLength: number;
   }) => void;
 };
+
+/**
+ * Call `scrollToIndex` on the list ref, tolerating both FlashList v2 (returns a
+ * Promise) and a swapped-in FlatList/BottomSheetFlatList (returns void). Any
+ * rejection routes to `onFail`.
+ */
+function safeScrollToIndex(
+  ref: { scrollToIndex?: (params: { index: number; animated?: boolean; viewPosition?: number }) => unknown } | null,
+  params: { index: number; animated?: boolean; viewPosition?: number },
+  onFail?: () => void
+): void {
+  const result = ref?.scrollToIndex?.(params);
+  if (result && typeof (result as Promise<void>).catch === 'function') {
+    (result as Promise<void>).catch(() => onFail?.());
+  }
+}
 
 /** Only consider an item "visible" once a majority of it is on-screen. */
 const VIEWABILITY_CONFIG: ViewabilityConfig = {
@@ -80,9 +98,13 @@ function EmojiGridComponent(
     onLongPress,
     onActivate,
     emojiImageResolver,
+    ListComponent,
     onActiveCategoryChange,
     onScrollToIndexFailed,
   } = props;
+  // Swap the underlying list (BottomSheetFlatList / custom) but keep FlashList's
+  // API surface for typing; consumers pass a FlashList-compatible component.
+  const ListImpl = (ListComponent ?? FlashList) as typeof FlashList;
   const theme = useTheme();
 
   const listRef = React.useRef<FlashListRef<GridItem>>(null);
@@ -93,11 +115,8 @@ function EmojiGridComponent(
   const { focus, move, focusFirst } = useGridNavigation(grid);
 
   const scrollFocusIntoView = React.useCallback((itemIndex: number) => {
-    listRef.current
-      ?.scrollToIndex({ index: itemIndex, animated: true, viewPosition: 0.5 })
-      .catch(() => {
-        /* target not yet measured — the imperative cell focus still nudges it */
-      });
+    // target not yet measured — the imperative cell focus still nudges it
+    safeScrollToIndex(listRef.current, { index: itemIndex, animated: true, viewPosition: 0.5 });
   }, []);
 
   // DOM key handler (react-native-web forwards `onKeyDown`). Enter/Space select
@@ -214,15 +233,11 @@ function EmojiGridComponent(
       scrollToCategory: (category: CategoryTypes) => {
         const index = grid.categoryToIndex[category];
         if (index === undefined) return;
-        // FlashList v2's scrollToIndex returns a Promise; surface a rejection
-        // (e.g. index not yet measured) through the failure callback.
-        listRef.current?.scrollToIndex({ index, animated: true }).catch(() => {
-          onScrollToIndexFailed?.({
-            index,
-            highestMeasuredFrameIndex: -1,
-            averageItemLength: 0,
-          });
-        });
+        // Surface a rejection (e.g. index not yet measured) through the failure
+        // callback; tolerant of a void-returning swapped-in FlatList.
+        safeScrollToIndex(listRef.current, { index, animated: true }, () =>
+          onScrollToIndexFailed?.({ index, highestMeasuredFrameIndex: -1, averageItemLength: 0 })
+        );
       },
     }),
     [grid.categoryToIndex, onScrollToIndexFailed]
@@ -233,7 +248,7 @@ function EmojiGridComponent(
       {...webGridProps}
       style={[styles.fill, { opacity, backgroundColor: theme.container }]}
     >
-      <FlashList<GridItem>
+      <ListImpl
         ref={listRef}
         data={grid.items}
         renderItem={renderItem}

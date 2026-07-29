@@ -286,6 +286,12 @@ export interface EmojiKeyboardProps {
    */
   enableCategoryChangeAnimation?: boolean;
   /**
+   * Swap the underlying virtualized list — e.g. `BottomSheetFlatList` from
+   * `@gorhom/bottom-sheet` so the grid scrolls correctly inside a bottom sheet.
+   * Must be FlashList-prop-compatible. Defaults to `@shopify/flash-list`.
+   */
+  ListComponent?: React.ElementType;
+  /**
    * On web, canvas-measure whether the platform can actually render each emoji
    * and hide the ones that would show as □ "tofu". No-op on native / SSR (where
    * it can't measure). Opt-in and best-effort; composes with `shouldInclude` and
