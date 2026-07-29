@@ -105,6 +105,8 @@ export {
   toneIndex,
   slugify,
   toEmojiType,
+  skinToneVariations,
+  createEmojiDatabase,
   buildGrid,
   searchEmojis,
   searchByShortcodePrefix,
@@ -160,4 +162,6 @@ export type {
   AsyncEmojiData,
   EmojiImageResolver,
   TwemojiUrlOptions,
+  SkinToneVariation,
+  EmojiDatabase,
 } from './core';

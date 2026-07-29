@@ -33,6 +33,20 @@ export function applyTone(e: CompactEmoji, tone: SkinTone): string {
   return typeof toned === 'string' && toned.length > 0 ? toned : e.e;
 }
 
+/** One skin-tone variant of an emoji: the tone and its resolved glyph. */
+export type SkinToneVariation = { tone: SkinTone; glyph: string };
+
+/**
+ * All available skin-tone variations of `e`, for a custom tone selector
+ * (frimousse's `useSkinTone` returns the same idea). Returns the base glyph plus
+ * the five tones when the emoji is tone-enabled; just the base otherwise.
+ */
+export function skinToneVariations(e: CompactEmoji): SkinToneVariation[] {
+  const toneEnabled = Array.isArray(e.t) && e.t.length >= 5;
+  if (!toneEnabled) return [{ tone: 'none', glyph: e.e }];
+  return SKIN_TONES.map((tone) => ({ tone, glyph: applyTone(e, tone) }));
+}
+
 /**
  * Incumbent-compatible slug: lowercase, every run of non-alphanumeric
  * characters collapsed to a single `_`, with leading/trailing `_` trimmed.
