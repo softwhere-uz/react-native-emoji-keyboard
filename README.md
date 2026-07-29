@@ -115,19 +115,21 @@ yarn format     # prettier --write
 
 ## Status
 
-**`0.7.0`** — published to npm as `latest`. A tight drop-in replacement for the incumbent's inline call
+**`0.9.0`** — published to npm as `latest`. A tight drop-in replacement for the incumbent's inline call
 sites (composer + reaction picker), **verified running on web (react-native-web), iOS (iPhone 16 Pro
-simulator, Fabric), and Android (Pixel 5 emulator)**. Since v0.1, working [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)
-section by section — now covering nearly the whole tracker: per-emoji skin-tone memory, emoticon +
-multi-word search, tofu-gating, a11y semantics + reduced motion + keyboard grid-navigation,
+simulator, Fabric), and Android (Pixel 5 emulator)**. [Issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)
+and the follow-up competitor-research backlog are **essentially complete**: per-emoji skin-tone memory,
+emoticon + multi-word search, tofu-gating, a11y semantics + reduced motion + keyboard grid-navigation,
 `shouldInclude` / custom category icons, functional multi-select, auto dark theme, preview bar,
-`EmojiModal`, `ReactionStrip`, favorites, seamless keyboard swap, composable `EmojiPicker.*`
-primitives, pluggable/async data, **bundled locale packs**, **image-backed emoji (Twemoji / custom /
-animated)**, **category swipe gesture**, **web render-support detection**, and a **pluggable
-sticker/GIF provider API**. The library is intentionally **100% JavaScript** (no native code — works in
-Expo Go, no prebuild). One roadmap item remains: multilingual keyword *search* (in-language queries).
-A native OS emoji-keyboard mode is a deliberate **non-goal** — it would need a native module and break
-Expo Go.
+`EmojiModal`, `ReactionStrip`, favorites, seamless keyboard swap, composable `EmojiPicker.*` primitives,
+pluggable/async data, bundled locale packs, image-backed emoji (Twemoji / custom / animated), category
+swipe gesture, web render-support detection, a pluggable sticker/GIF provider API — plus a **frecency
+“Frequently used”** section, **smart recent/frequent reactions**, a **swappable list component** (e.g.
+`BottomSheetFlatList`), **`:shortcode:` autocomplete**, search debounce / min-chars, opt-in haptics,
+screen-reader result-count announcements, and a headless **emoji-database facade**. The library is
+intentionally **100% JavaScript** (no native code — works in Expo Go, no prebuild). Only two items
+remain, both deliberate exclusions: **multilingual keyword search** (in-language queries) and a **native
+OS emoji-keyboard mode** (a non-goal — it would need a native module and break Expo Go).
 
 ## Links
 

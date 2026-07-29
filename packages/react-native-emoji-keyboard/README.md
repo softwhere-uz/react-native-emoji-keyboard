@@ -366,7 +366,9 @@ Building a custom picker? The hooks and pure helpers that power `<EmojiKeyboard>
 ```tsx
 import {
   // pure helpers
-  searchEmojis, searchByShortcodePrefix, applyTone, toEmojiType, buildGrid, slugify, toneIndex,
+  searchEmojis, searchByShortcodePrefix, applyTone, skinToneVariations, toEmojiType, buildGrid, slugify, toneIndex,
+  // headless emoji-database facade (UI-agnostic: search / autocomplete / fromGlyph / tones)
+  createEmojiDatabase,
   // frecency + reaction history
   useFrequentlyUsed, useReactionHistory,
   // grid keyboard-navigation model (pure)
@@ -538,7 +540,7 @@ The incumbent gated first paint on a deferred post-interaction callback, which d
 
 ## Roadmap
 
-Shipped since v0.1 (tracking [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1)): per-emoji skin-tone memory, emoticon + multi-word ranked search, emoji-version “tofu” gating, reduced-motion + screen-reader semantics, `shouldInclude` / custom category icons, functional multi-select, auto light/dark theme, preview bar, `EmojiModal` bottom sheet, `ReactionStrip`, favorites, composable `EmojiPicker.*` primitives, keyboard grid-navigation, a pluggable/async data source, **bundled locale packs**, **image-backed emoji (Twemoji glyph set / custom / animated)**, **category swipe gesture**, **web render-support detection**, and a **pluggable sticker/GIF provider API**.
+Shipped since v0.1 (tracking [issue #1](https://github.com/softwhere-uz/react-native-emoji-keyboard/issues/1) + the follow-up competitor-research backlog): per-emoji skin-tone memory, emoticon + multi-word ranked search, emoji-version “tofu” gating, reduced-motion + screen-reader semantics, `shouldInclude` / custom category icons, functional multi-select, auto light/dark theme, preview bar, `EmojiModal` bottom sheet, `ReactionStrip`, favorites, composable `EmojiPicker.*` primitives, keyboard grid-navigation, a pluggable/async data source, bundled locale packs, image-backed emoji (Twemoji glyph set / custom / animated), category swipe gesture, web render-support detection, a pluggable sticker/GIF provider API — plus a **frecency “Frequently used”** section (`recentsMode`), **smart recent/frequent reactions** (`ReactionStrip mode`), a **swappable `ListComponent`** (e.g. `BottomSheetFlatList`), **`:shortcode:` autocomplete** (`searchByShortcodePrefix`), `searchDebounceMs` / `searchMinChars`, opt-in `hapticOnSelect`, screen-reader result-count announcements, and a headless **`createEmojiDatabase`** facade.
 
 - **Still open** — multilingual keyword *search* (typing queries in-language; needs bundled per-locale keyword data). On-device polish (arrow-key focus/scroll, RTL) is verified by the maintainer.
 - **Won't do** — a **native OS emoji-keyboard mode** (iOS `MCEmojiPicker` / Android `emoji2`) would require a native module, which breaks **Expo Go**. This library is intentionally **100% JavaScript** (no prebuild, works in Expo Go). If you need the native picker, wrap it in your own app; it won't land in this package.
