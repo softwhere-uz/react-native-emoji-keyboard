@@ -8,7 +8,10 @@
 export type { GridItem, GridModel, RenderEmoji, Section } from './internal-types';
 
 // Pure functions.
-export { toneIndex, applyTone, slugify, toEmojiType } from './skinTone';
+export { toneIndex, applyTone, slugify, toEmojiType, skinToneVariations } from './skinTone';
+export type { SkinToneVariation } from './skinTone';
+export { createEmojiDatabase } from './database';
+export type { EmojiDatabase } from './database';
 export { buildGrid } from './buildGrid';
 export { searchEmojis } from './search';
 export { searchByShortcodePrefix } from './shortcodeSearch';

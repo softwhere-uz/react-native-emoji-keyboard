@@ -68,6 +68,10 @@ export type EmojiPickerStateOptions = {
   searchDebounceMs?: number;
   /** Minimum query length before searching. Default `1`. */
   searchMinChars?: number;
+  /** Controlled search text. Omit for internal (uncontrolled) state. */
+  search?: string;
+  /** Notified whenever the search text changes (controlled or not). */
+  onSearchChange?: (query: string) => void;
   /** Show a leading favorites section + long-press favoriting. */
   enableFavorites?: boolean;
   /** Render emoji as images (bundled glyph set / custom / animated). */
@@ -149,6 +153,8 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
     recentsMode = 'recency',
     searchDebounceMs = 0,
     searchMinChars = 1,
+    search: controlledSearch,
+    onSearchChange,
     enableFavorites = false,
     emojiImageResolver,
   } = opts;
@@ -209,10 +215,27 @@ export function useEmojiPickerValue(opts: EmojiPickerStateOptions): EmojiPickerC
   });
 
   // Search over the active bundle.
-  const { query, setQuery, results, isSearching } = useSearch(sourceEmojis as CompactEmoji[], {
+  const {
+    query,
+    setQuery: setInternalQuery,
+    results,
+    isSearching,
+  } = useSearch(sourceEmojis as CompactEmoji[], {
     debounceMs: searchDebounceMs,
     minChars: searchMinChars,
   });
+  // Bridge a controlled `search` prop onto the internal query, and notify on change.
+  React.useEffect(() => {
+    if (controlledSearch != null && controlledSearch !== query) setInternalQuery(controlledSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledSearch]);
+  const setQuery = React.useCallback(
+    (q: string) => {
+      onSearchChange?.(q);
+      setInternalQuery(q);
+    },
+    [onSearchChange, setInternalQuery]
+  );
 
   const { grid, sections } = useEmojiData({
     categoryOrder: categoryOrder ? [...categoryOrder] : undefined,
