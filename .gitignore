@@ -4,6 +4,11 @@ node_modules/
 !.yarn/patches
 !.yarn/releases
 
+# npm lockfiles — this is a Yarn (v1) workspaces repo; CI uses yarn --frozen-lockfile.
+# An accidental `npm install` writes package-lock.json, which must not be committed.
+package-lock.json
+**/package-lock.json
+
 # build output
 lib/
 dist/
