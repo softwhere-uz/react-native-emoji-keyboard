@@ -6,7 +6,6 @@
  */
 import * as React from 'react';
 import { Keyboard } from 'react-native';
-import type { TextInput } from 'react-native';
 
 export type KeyboardState = {
   /** Keyboard height. REMEMBERED after it hides so the panel can take its place. */
@@ -107,6 +106,16 @@ export function useEmojiKeyboardInset(
   return { inset: visible || emojiOpen ? height : 0, keyboardVisible: visible, keyboardHeight: height };
 }
 
+/**
+ * Anything that can focus the composer. A `TextInput` ref satisfies this, and
+ * so does a ref to an imperative handle that merely exposes `focus()` — the
+ * hook never touches any other `TextInput` API, so it must not demand one (#14).
+ * `current` is readonly because the hook only ever reads the ref; a writable
+ * property would let a `FocusableRef`-typed function write a non-`TextInput`
+ * back into a caller's `TextInput` ref.
+ */
+export type FocusableRef = { readonly current: { focus: () => void } | null };
+
 export type EmojiKeyboardSwap = {
   /** Whether the emoji panel is currently shown. */
   emojiOpen: boolean;
@@ -148,8 +157,8 @@ export type EmojiKeyboardSwap = {
  * plain toggle.
  */
 export function useEmojiKeyboardSwap(opts?: {
-  /** Ref to the composer's `TextInput`, so `showKeyboard`/`toggle` can focus it. */
-  inputRef?: React.RefObject<TextInput | null>;
+  /** Ref to the composer's `TextInput` — or any handle exposing `focus()` — so `showKeyboard`/`toggle` can focus it. */
+  inputRef?: FocusableRef;
   /** Height used until a keyboard has been measured (and on web). Defaults to 300. */
   fallbackHeight?: number;
 }): EmojiKeyboardSwap {

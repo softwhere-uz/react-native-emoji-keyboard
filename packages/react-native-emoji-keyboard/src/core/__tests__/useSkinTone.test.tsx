@@ -18,7 +18,7 @@ function makeAdapter(seed: Record<string, string> = {}): StorageAdapter & {
   const store: Record<string, string> = { ...seed };
   return {
     store,
-    getItem: (k: string) => (k in store ? store[k] : null),
+    getItem: (k: string) => store[k] ?? null,
     setItem: (k: string, v: string) => {
       store[k] = v;
     },
@@ -38,7 +38,7 @@ function makeDeferredAdapter(seed: Record<string, string> = {}) {
       // Reads reflect the store at the moment they RESOLVE (like a real queue).
       getItem: (k: string) =>
         new Promise<string | null>((resolve) => {
-          releases.push(() => resolve(k in store ? store[k] : null));
+          releases.push(() => resolve(store[k] ?? null));
         }),
       setItem: (k: string, v: string) => {
         store[k] = v;
@@ -77,7 +77,7 @@ describe('useSkinTone — per-emoji tone memory', () => {
     });
 
     expect(api.toneMemory).toEqual({ '👋': 'dark' });
-    expect(JSON.parse(adapter.store[STORAGE_KEYS.skinToneMemory])).toEqual({ '👋': 'dark' });
+    expect(JSON.parse(adapter.store[STORAGE_KEYS.skinToneMemory]!)).toEqual({ '👋': 'dark' });
   });
 
   it('merges multiple remembered tones without dropping earlier ones', async () => {
@@ -111,7 +111,7 @@ describe('useSkinTone — per-emoji tone memory', () => {
     });
 
     expect(api.toneMemory).toEqual({ '👋': 'dark', '🎅': 'light' });
-    expect(JSON.parse(adapter.store[STORAGE_KEYS.skinToneMemory])).toEqual({
+    expect(JSON.parse(adapter.store[STORAGE_KEYS.skinToneMemory]!)).toEqual({
       '👋': 'dark',
       '🎅': 'light',
     });
@@ -174,7 +174,7 @@ describe('useSkinTone — per-emoji tone memory', () => {
 
     expect(api.toneMemory).toEqual({ '👋': 'dark', '🎅': 'medium' });
     // ...and the merged map is re-persisted, so 🎅 survives the NEXT launch too.
-    expect(JSON.parse(store[STORAGE_KEYS.skinToneMemory])).toEqual({ '👋': 'dark', '🎅': 'medium' });
+    expect(JSON.parse(store[STORAGE_KEYS.skinToneMemory]!)).toEqual({ '👋': 'dark', '🎅': 'medium' });
   });
 });
 

@@ -68,7 +68,7 @@ export {
   useEmojiKeyboardInset,
   useEmojiKeyboardSwap,
 } from './components/useKeyboardState';
-export type { KeyboardState, EmojiKeyboardSwap } from './components/useKeyboardState';
+export type { KeyboardState, EmojiKeyboardSwap, FocusableRef } from './components/useKeyboardState';
 
 // --- public types (incumbent-compatible) ---------------------------------
 export type {

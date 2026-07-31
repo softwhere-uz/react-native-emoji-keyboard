@@ -20,7 +20,7 @@ function makeAdapter(seed: Record<string, string> = {}): StorageAdapter & {
   const store: Record<string, string> = { ...seed };
   return {
     store,
-    getItem: (k: string) => (k in store ? store[k] : null),
+    getItem: (k: string) => store[k] ?? null,
     setItem: (k: string, v: string) => {
       store[k] = v;
     },
@@ -40,7 +40,7 @@ function makeDeferredAdapter(seed: Record<string, string> = {}) {
     adapter: {
       getItem: (k: string) =>
         new Promise<string | null>((resolve) => {
-          releases.push(() => resolve(k in store ? store[k] : null));
+          releases.push(() => resolve(store[k] ?? null));
         }),
       setItem: (k: string, v: string) => {
         store[k] = v;
@@ -67,7 +67,7 @@ function Probe(opts: Parameters<typeof useFavorites>[0]): React.ReactElement {
 }
 
 test('toggles membership: add then remove, reflected by isFavorite and the return value', async () => {
-  const { adapter } = makeAdapter();
+  const adapter = makeAdapter();
   await act(async () => {
     render(<Probe storage={adapter} />);
   });
@@ -101,7 +101,7 @@ test('preserves insertion order and persists the list', async () => {
   });
   expect(api.favorites.map((f) => f.emoji)).toEqual(['😀', '❤️']);
 
-  const persisted = JSON.parse(withStore.store[STORAGE_KEYS.favorites]);
+  const persisted = JSON.parse(withStore.store[STORAGE_KEYS.favorites]!);
   expect(persisted.map((f: EmojiType) => f.emoji)).toEqual(['😀', '❤️']);
 });
 
@@ -147,5 +147,5 @@ test('clearFavorites empties and persists', async () => {
     api.clearFavorites();
   });
   expect(api.favorites).toEqual([]);
-  expect(JSON.parse(withStore.store[STORAGE_KEYS.favorites])).toEqual([]);
+  expect(JSON.parse(withStore.store[STORAGE_KEYS.favorites]!)).toEqual([]);
 });

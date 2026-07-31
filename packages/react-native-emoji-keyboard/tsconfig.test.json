@@ -1,0 +1,9 @@
+{
+  // Typechecks the test suites (tsconfig.json excludes them, and babel-jest
+  // strips types without checking). Compile-level contracts asserted in tests
+  // — e.g. the #14 `FocusableRef` assignability guards — are only enforced
+  // because `yarn typecheck` runs this project too.
+  "extends": "./tsconfig.json",
+  "include": ["src", "jest.setup.ts"],
+  "exclude": []
+}
