@@ -17,6 +17,7 @@ import type { DimensionValue, LayoutRectangle } from 'react-native';
 
 import type { RenderEmoji } from '../core';
 import { useTheme } from '../theme';
+import { glyphTextMetrics } from './glyphMetrics';
 
 /** On-screen rectangle reported to `onLongPress` (window-relative). */
 export type EmojiCellLayout = LayoutRectangle;
@@ -104,7 +105,6 @@ function EmojiCellComponent({
 
   // Height tracks the glyph box so rows stay a consistent, non-clipping height.
   const cellHeight = Math.round(emojiSize * 1.5);
-  const lineHeight = Math.round(emojiSize * 1.25);
 
   return (
     <Pressable
@@ -137,7 +137,7 @@ function EmojiCellComponent({
           accessibilityIgnoresInvertColors
         />
       ) : (
-        <Text allowFontScaling={false} style={[styles.glyph, { fontSize: emojiSize, lineHeight }]}>
+        <Text allowFontScaling={false} style={[styles.glyph, glyphTextMetrics(emojiSize)]}>
           {emoji.glyph}
         </Text>
       )}

@@ -16,6 +16,7 @@ import { DEFAULT_QUICK_REACTIONS, resolveReaction, useReactionHistory } from '..
 import type { ReactionHistoryMode } from '../core';
 import type { EmojiType, RecursivePartial, StorageAdapter, Theme } from '../types';
 import { darkTheme, defaultTheme, ThemeProvider, useTheme } from '../theme';
+import { glyphTextMetrics } from './glyphMetrics';
 
 export type ReactionStripProps = {
   /** Fired when a reaction is tapped. Same payload shape as `EmojiKeyboard`. */
@@ -120,7 +121,7 @@ function ReactionStripBody({
           >
             <Text
               allowFontScaling={false}
-              style={[styles.glyph, { fontSize: emojiSize, lineHeight }]}
+              style={[styles.glyph, glyphTextMetrics(emojiSize)]}
             >
               {glyph}
             </Text>
