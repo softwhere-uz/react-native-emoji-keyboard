@@ -119,10 +119,7 @@ function ReactionStripBody({
             accessibilityState={{ selected: isSelected }}
             style={[styles.item, isSelected ? { backgroundColor: theme.emoji.selected } : null]}
           >
-            <Text
-              allowFontScaling={false}
-              style={[styles.glyph, glyphTextMetrics(emojiSize)]}
-            >
+            <Text allowFontScaling={false} style={[styles.glyph, glyphTextMetrics(emojiSize)]}>
               {glyph}
             </Text>
           </Pressable>
