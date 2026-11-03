@@ -20,6 +20,7 @@ import type { RenderEmoji } from '../core';
 import { SKIN_TONES } from '../constants';
 import type { SkinTone } from '../types';
 import { useTheme } from '../theme';
+import { glyphTextMetrics } from './glyphMetrics';
 import { useReducedMotion } from './useReducedMotion';
 import type { EmojiCellLayout } from './EmojiCell';
 
@@ -171,10 +172,7 @@ export function SkinTonePopover({
           >
             <Text
               allowFontScaling={false}
-              style={[
-                popStyles.variantGlyph,
-                { fontSize: emojiSize, lineHeight: Math.round(emojiSize * 1.25) },
-              ]}
+              style={[popStyles.variantGlyph, glyphTextMetrics(emojiSize)]}
             >
               {isFavorite ? '★' : '☆'}
             </Text>
@@ -190,10 +188,7 @@ export function SkinTonePopover({
           >
             <Text
               allowFontScaling={false}
-              style={[
-                popStyles.variantGlyph,
-                { fontSize: emojiSize, lineHeight: Math.round(emojiSize * 1.25) },
-              ]}
+              style={[popStyles.variantGlyph, glyphTextMetrics(emojiSize)]}
             >
               {applyTone(emoji.source, tone)}
             </Text>

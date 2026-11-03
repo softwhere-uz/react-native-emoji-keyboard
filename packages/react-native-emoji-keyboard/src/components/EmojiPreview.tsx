@@ -11,6 +11,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { RenderEmoji } from '../core';
 import { useTheme } from '../theme';
+import { glyphTextMetrics } from './glyphMetrics';
 
 export type EmojiPreviewProps = {
   /** The active emoji to preview, or `null` before any interaction. */
@@ -38,7 +39,7 @@ function EmojiPreviewComponent({
         <>
           <Text
             allowFontScaling={false}
-            style={[styles.glyph, { fontSize: emojiSize, lineHeight: Math.round(emojiSize * 1.25) }]}
+            style={[styles.glyph, glyphTextMetrics(emojiSize)]}
           >
             {emoji.glyph}
           </Text>
